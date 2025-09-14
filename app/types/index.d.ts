@@ -58,3 +58,7 @@ export interface Range {
   start: Date
   end: Date
 }
+
+export interface BaseEntity {
+  Id: string
+}
