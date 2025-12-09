@@ -191,6 +191,15 @@ watch(() => statusFilter.value, (newVal) => {
   }
 })
 
+const email = computed({
+  get: (): string => {
+    return (table.value?.tableApi?.getColumn('email')?.getFilterValue() as string) || ''
+  },
+  set: (value: string) => {
+    table.value?.tableApi?.getColumn('email')?.setFilterValue(value || undefined)
+  }
+})
+
 const pagination = ref({
   pageIndex: 0,
   pageSize: 10
@@ -214,11 +223,10 @@ const pagination = ref({
     <template #body>
       <div class="flex flex-wrap items-center justify-between gap-1.5">
         <UInput
-          :model-value="(table?.tableApi?.getColumn('email')?.getFilterValue() as string)"
+          v-model="email"
           class="max-w-sm"
           icon="i-lucide-search"
           placeholder="Filter emails..."
-          @update:model-value="table?.tableApi?.getColumn('email')?.setFilterValue($event)"
         />
 
         <div class="flex flex-wrap items-center gap-1.5">
