@@ -1,5 +1,6 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  compatibilityDate: '2024-07-11',
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
@@ -18,8 +19,6 @@ export default defineNuxtConfig({
     }
   },
 
-  compatibilityDate: '2024-07-11',
-
   eslint: {
     config: {
       stylistic: {
@@ -27,5 +26,7 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
-  }
+  },
+  
+  ssr: false
 })
