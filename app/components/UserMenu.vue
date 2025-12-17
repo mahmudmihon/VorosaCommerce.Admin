@@ -6,10 +6,9 @@ defineProps<{
 }>()
 
 const colorMode = useColorMode()
-const appConfig = useAppConfig()
+const { clear } = useUserSession()
+const router = useRouter()
 
-const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
-const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone']
 
 const user = ref({
   name: 'Zahir Mahmud',
@@ -61,7 +60,11 @@ const items = computed<DropdownMenuItem[][]>(() => ([
   }],
   [{
     label: 'Log out',
-    icon: 'i-lucide-log-out'
+    icon: 'i-lucide-log-out',
+    onSelect: async () => {
+      await clear()
+      router.push('/signin')
+    }
   }]
 ]))
 </script>

@@ -19,12 +19,14 @@ const fields = [{
   label: 'Email',
   placeholder: 'Enter your email',
   required: true
-}, {
+},
+{
   name: 'password',
   label: 'Password',
   type: 'password' as const,
   placeholder: 'Enter your password'
-}, {
+},
+{
   name: 'remember',
   label: 'Remember me',
   type: 'checkbox' as const
@@ -40,13 +42,29 @@ const providers = [{
 
 const schema = z.object({
   email: z.email('Invalid email'),
-  password: z.string().min(8, 'Must be at least 8 characters')
+  password: z.string().min(6, 'Must be at least 6 characters')
 })
 
 type Schema = z.output<typeof schema>
 
-function onSubmit(payload: FormSubmitEvent<Schema>) {
-  console.log('Submitted', payload)
+const { fetch: refreshSession, loggedIn } = useUserSession()
+const router = useRouter()
+
+async function onSubmit(payload: FormSubmitEvent<Schema>) {
+  try {
+    await $fetch('/api/auth/login', { method: 'POST', body: payload.data })
+    await refreshSession()
+    if (loggedIn.value) {
+      router.push('/')
+    }
+  }
+  catch (error: any) {
+    toast.add({
+      title: 'Login failed',
+      description: error?.response?._data?.message || error?.message || 'An error occurred during login',
+      color: 'error'
+    })
+  }
 }
 </script>
 
