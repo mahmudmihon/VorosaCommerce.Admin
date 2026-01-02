@@ -58,10 +58,10 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
       router.push('/')
     }
   }
-  catch (error: any) {
+  catch (error: unknown) {
     toast.add({
       title: 'Login failed',
-      description: error?.response?._data?.message || error?.message || 'An error occurred during login',
+      description: error instanceof Error ? error.message : 'An error occurred during login',
       color: 'error'
     })
   }

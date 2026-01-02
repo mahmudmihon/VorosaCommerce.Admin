@@ -22,18 +22,30 @@ export default defineEventHandler(async (event) => {
     body: { email, password }
   })
 
+  console.log('[auth/login] response', res)
+
   const accessExp = new Date(res.AccessTokenExpiryTime).getTime()
   const refreshExp = new Date(res.RefreshTokenExpiryTime).getTime()
 
   await setUserSession(event, {
-    user: { email },
-    secure: {
+    user: {
+      email,
       accessToken: res.AccessToken,
-      accessExp,
+      accessExp
+    },
+    secure: {
       refreshToken: res.RefreshToken,
       refreshExp
     },
     loggedInAt: new Date()
+  })
+
+  console.log('[auth/login] session set', {
+    user: email,
+    accessTokenSet: !!res.AccessToken,
+    accessExp,
+    refreshTokenSet: !!res.RefreshToken,
+    refreshExp
   })
 
   return {}

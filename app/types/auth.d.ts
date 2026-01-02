@@ -1,12 +1,12 @@
 declare module '#auth-utils' {
   interface SecureSessionData {
-    accessToken: string
-    accessExp: number
     refreshToken: string
     refreshExp: number
   }
   interface User {
     email?: string
+    accessToken?: string
+    accessExp?: number
   }
   interface UserSession {
     user?: User
