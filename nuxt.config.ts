@@ -1,3 +1,7 @@
+import dotenvFlow from 'dotenv-flow';
+
+dotenvFlow.config();
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-07-11',
 
@@ -22,9 +26,17 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://localhost:7198'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE
     }
   },
 
-  ssr: false
+  ssr: false,
+
+  hooks: {
+    'nitro:config': (nitroConfig) => {
+      if (process.env.NODE_ENV === 'development') {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+      }
+    }
+  }
 })

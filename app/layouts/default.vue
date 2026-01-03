@@ -21,6 +21,7 @@
           orientation="vertical"
           tooltip
           popover
+          :ui="{ link: 'py-2' }"
         />
 
         <!-- <UNavigationMenu
