@@ -1,6 +1,6 @@
-export interface SitemapNode {
+export type SitemapNodeDto = {
   Label: string
   Route?: string | null
   IconClass?: string | null
-  ChildNodes?: SitemapNode[]
+  ChildNodes?: SitemapNodeDto[]
 }

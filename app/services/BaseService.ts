@@ -7,8 +7,8 @@ class BaseService {
     this.apiService = ApiService;
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return await this.apiService<T>(endpoint);
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+    return await this.apiService<T>(endpoint, { params });
   }
 
   async post<T>(endpoint: string, data: any): Promise<T> {

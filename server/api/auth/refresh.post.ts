@@ -1,19 +1,17 @@
-type TokenResponseDto = {
-  AccessToken: string
-  AccessTokenExpiryTime: string | Date
-  RefreshToken: string
-  RefreshTokenExpiryTime: string | Date
-}
+import { TokenResponseDto } from '~~/shared/types/token-response'
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
+
   const refreshToken = session?.secure?.refreshToken as string | undefined
+  
   if (!refreshToken) {
     console.warn('[auth/refresh] missing refresh token')
     throw createError({ statusCode: 401, statusMessage: 'No refresh token' })
   }
 
   const config = useRuntimeConfig()
+
   const res = await $fetch<TokenResponseDto>('api/v1/admin/auth/refresh', {
     baseURL: config.public.apiBase,
     method: 'POST',
@@ -28,7 +26,9 @@ export default defineEventHandler(async (event) => {
     user: {
       ...(session.user || {}),
       accessToken: res.AccessToken,
-      accessExp
+      accessExp,
+      userId: res.UserId,
+      rbacVersion: res.RBACVersion
     },
     secure: {
       refreshToken: res.RefreshToken,
@@ -42,6 +42,8 @@ export default defineEventHandler(async (event) => {
     refreshTokenSet: !!res.RefreshToken,
     refreshExp
   })
+
+  console.log('[auth/refresh] rbac updated', { userId: res.UserId, rbacVersion: res.RBACVersion })
 
   return {}
 })

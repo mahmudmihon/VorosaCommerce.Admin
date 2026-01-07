@@ -1,11 +1,5 @@
 import { z } from 'zod'
-
-type TokenResponseDto = {
-  AccessToken: string
-  AccessTokenExpiryTime: string | Date
-  RefreshToken: string
-  RefreshTokenExpiryTime: string | Date
-}
+import { TokenResponseDto } from '~~/shared/types/token-response'
 
 const bodySchema = z.object({
   email: z.email({}),
@@ -31,7 +25,9 @@ export default defineEventHandler(async (event) => {
     user: {
       email,
       accessToken: res.AccessToken,
-      accessExp
+      accessExp,
+      userId: res.UserId,
+      rbacVersion: res.RBACVersion
     },
     secure: {
       refreshToken: res.RefreshToken,
@@ -47,6 +43,8 @@ export default defineEventHandler(async (event) => {
     refreshTokenSet: !!res.RefreshToken,
     refreshExp
   })
+
+  console.log('[auth/login] rbac primed', { userId: res.UserId, rbacVersion: res.RBACVersion })
 
   return {}
 })

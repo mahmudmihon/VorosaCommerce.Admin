@@ -1,4 +1,7 @@
-export interface Category extends BaseEntity {
+import type { BaseEntity } from ".."
+import type { PictureDto } from "../common/Picture"
+
+export type CategoryDto = BaseEntity & {
   Name: string
   SeName: string
   Description: string
@@ -10,6 +13,6 @@ export interface Category extends BaseEntity {
   ShowOnHomePage: boolean
   Published: boolean
   DisplayOrder: number
-  Picture: Picture
-  Icon: Picture
+  Picture: PictureDto
+  Icon: PictureDto
 }

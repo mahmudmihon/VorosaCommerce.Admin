@@ -21,7 +21,8 @@
           orientation="vertical"
           tooltip
           popover
-          :ui="{ link: 'py-2' }"
+          :ui="{ link: 'py-2' }",
+          class="cursor-pointer"
         />
 
         <!-- <UNavigationMenu
@@ -49,23 +50,29 @@
 <script setup lang="ts">
   import type { NavigationMenuItem } from '@nuxt/ui'
   import SitemapService from '~/services/SitemapService'
-  import type { SitemapNode } from '~/types/sitemap/sitemap'
+  import type { SitemapNodeDto } from '~/types/identity/sitemap'
+  import type { SitemapNodeWithPermissionDto } from '~/types/identity/sitemap-with-permission'
 
   const open = ref(false)
 
-  const sitemap = ref<SitemapNode[]>([])
+  const sitemap = ref<SitemapNodeWithPermissionDto>({
+    UserId: '',
+    RBACVersion: 0,
+    Nodes: [],
+    PermissionActions: []
+  })
 
   const { loggedIn } = useUserSession()
 
   watch(loggedIn, async (isLoggedIn) => {
-    if (!isLoggedIn || sitemap.value.length) return
+    if (!isLoggedIn || sitemap.value.Nodes.length) return
     try {
-      sitemap.value = await SitemapService.getSitemap()
+      sitemap.value = await SitemapService.getSitemapWithPermission()
     }
     catch {}
   }, { immediate: true })
 
-  const toMenuItems = (nodes: SitemapNode[]): NavigationMenuItem[] => {
+  const toMenuItems = (nodes: SitemapNodeDto[]): NavigationMenuItem[] => {
     return nodes.map((node) => {
       const hasChildren = Array.isArray(node.ChildNodes) && node.ChildNodes.length > 0
       if (hasChildren) {
@@ -89,7 +96,7 @@
   }
 
   const links = computed<NavigationMenuItem[][]>(() => {
-    const items = toMenuItems(sitemap.value || [])
+    const items = toMenuItems(sitemap.value.Nodes || [])
     return [items]
   })
 

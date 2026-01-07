@@ -59,6 +59,6 @@ export interface Range {
   end: Date
 }
 
-export interface BaseEntity {
+export type BaseEntity = {
   Id: string
 }

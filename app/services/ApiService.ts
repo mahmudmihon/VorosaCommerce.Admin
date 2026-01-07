@@ -25,8 +25,10 @@ const ApiService = async <T>(endpoint: string, options: FetchOptions<'json'> = {
 
   try {
     return await $fetch<T>(endpoint, options);
-  } catch (err) {
+  }
+  catch (err) {
     const status = (err as FetchError)?.response?.status ?? (err as any)?.status;
+    
     if (status === 401) {
       if (!canRefresh(session)) throw err;
       console.warn('[ApiService] 401, attempting refresh')
@@ -74,11 +76,13 @@ async function getAccessToken(
       console.debug('[ApiService] refreshed token', { present: !!token })
     }
   }
+
   return token;
 }
 
 function withAuthHeaders(headers: HeadersInit | undefined, token?: string): HeadersInit {
   const out: HeadersInit = { ...(headers || {}) };
+
   if (token) {
     (out as Record<string, string>).Authorization = `Bearer ${token}`;
   }

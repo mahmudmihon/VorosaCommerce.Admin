@@ -3,15 +3,20 @@ declare module '#auth-utils' {
     refreshToken: string
     refreshExp: number
   }
+
   interface User {
     email?: string
-    accessToken: string
-    accessExp: number
+    accessToken?: string
+    accessExp?: number
+    userId?: string
+    rbacVersion?: number
   }
+
   interface UserSession {
     user?: User
     loggedInAt?: Date
     secure?: SecureSessionData
   }
 }
+
 export {}
