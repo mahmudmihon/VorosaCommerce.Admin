@@ -21,7 +21,7 @@
           orientation="vertical"
           tooltip
           popover
-          :ui="{ link: 'py-2' }",
+          :ui="{ link: 'py-2 font-semibold' }"
           class="cursor-pointer"
         />
 
@@ -49,54 +49,87 @@
 
 <script setup lang="ts">
   import type { NavigationMenuItem } from '@nuxt/ui'
-  import SitemapService from '~/services/SitemapService'
   import type { SitemapNodeDto } from '~/types/identity/sitemap'
-  import type { SitemapNodeWithPermissionDto } from '~/types/identity/sitemap-with-permission'
 
   const open = ref(false)
 
-  const sitemap = ref<SitemapNodeWithPermissionDto>({
-    UserId: '',
-    RBACVersion: 0,
-    Nodes: [],
-    PermissionActions: []
-  })
+  const { sitemap, fetchSitemap } = useSitemap()
 
   const { loggedIn } = useUserSession()
 
+  const route = useRoute()
+
   watch(loggedIn, async (isLoggedIn) => {
     if (!isLoggedIn || sitemap.value.Nodes.length) return
-    try {
-      sitemap.value = await SitemapService.getSitemapWithPermission()
-    }
-    catch {}
+    await fetchSitemap()
   }, { immediate: true })
 
-  const toMenuItems = (nodes: SitemapNodeDto[]): NavigationMenuItem[] => {
-    return nodes.map((node) => {
-      const hasChildren = Array.isArray(node.ChildNodes) && node.ChildNodes.length > 0
-      if (hasChildren) {
-        return {
+  const isRouteActive = (nodeRoute?: string | null, currentPath?: string): boolean => {
+    if (!nodeRoute || !currentPath) return false
+
+    // Exact match
+    if (nodeRoute === currentPath) return true
+
+    // Handle /category/list matching /category/create or /category/edit/:id
+    let baseRoute = nodeRoute
+
+    if (baseRoute.endsWith('/list')) {
+      baseRoute = baseRoute.slice(0, -5)
+    }
+
+    // Check if current path starts with the base route (as a complete segment)
+    // We check for exact match with baseRoute OR baseRoute + '/' to ensure we don't match /category-groups against /category
+    if (currentPath === baseRoute) return true
+    if (currentPath.startsWith(baseRoute + '/')) return true
+
+    return false
+  }
+
+  const mapNode = (node: SitemapNodeDto): { item: NavigationMenuItem, isActive: boolean } => {
+    const hasChildren = Array.isArray(node.ChildNodes) && node.ChildNodes.length > 0
+
+    if (hasChildren) {
+      const mappedChildren = node.ChildNodes!.map(mapNode)
+
+      const children = mappedChildren.map(m => m.item)
+
+      const isChildActive = mappedChildren.some(m => m.isActive)
+
+      return {
+        item: {
           label: node.Label,
           icon: node.IconClass || undefined,
           type: 'trigger' as const,
-          defaultOpen: false,
-          children: toMenuItems(node.ChildNodes!)
-        }
+          defaultOpen: isChildActive,
+          children: children
+        },
+        isActive: isChildActive
       }
-      return {
+    }
+
+    const isActive = isRouteActive(node.Route, route.path)
+
+    return {
+      item: {
         label: node.Label,
         icon: node.IconClass || undefined,
         to: node.Route || '/',
+        active: isActive,
         onSelect: () => {
           open.value = false
         }
-      }
-    })
+      },
+      isActive
+    }
+  }
+
+  const toMenuItems = (nodes: SitemapNodeDto[]): NavigationMenuItem[] => {
+    return nodes.map(node => mapNode(node).item)
   }
 
   const links = computed<NavigationMenuItem[][]>(() => {
     const items = toMenuItems(sitemap.value.Nodes || [])
+
     return [items]
   })
 

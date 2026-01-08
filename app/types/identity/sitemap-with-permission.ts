@@ -5,5 +5,5 @@ export type SitemapNodeWithPermissionDto = {
   UserId: string;
   RBACVersion: number;
   Nodes: SitemapNodeDto[];
-  PermissionActions: PermissionActionDto[];
+  Permissions: PermissionActionDto[];
 }

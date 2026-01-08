@@ -3,57 +3,69 @@
     <template #header>
       <UDashboardNavbar title="Categories">
         <template #right>
-          <UButton
-            label="Add Category"
-            icon="i-lucide-plus"
-            to="/category/create"
-          />
+          <UDropdownMenu :items="headerActions">
+            <UButton
+              label="Actions"
+              icon="i-lucide-chevron-down"
+              trailing
+              color="neutral"
+              variant="outline"
+            />
+          </UDropdownMenu>
         </template>
       </UDashboardNavbar>
     </template>
 
     <template #body>
-      <div class="flex flex-col flex-1 gap-4">
-        <div class="flex items-center gap-2">
-          <UInput
-            v-model="nameFilter"
-            icon="i-lucide-search"
-            placeholder="Filter by name..."
-            class="max-w-sm"
-          />
+      <div class="flex flex-wrap items-center justify-between gap-1.5">
+        <UInput
+          v-model="nameFilter"
+          icon="i-lucide-search"
+          placeholder="Filter by name..."
+          class="max-w-sm"
+        />
+      </div>
+
+      <UTable
+        ref="table"
+        :data="tableData"
+        :columns="columns"
+        :loading="loading"
+        class="shrink-0"
+        :ui="{
+          base: 'table-fixed border-separate border-spacing-0',
+          thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
+          tbody: '[&>tr]:last:[&>td]:border-b-0',
+          th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
+          td: 'border-b border-default',
+          separator: 'h-0'
+        }"
+      >
+        <template #Published-cell="{ row }">
+          <UBadge :color="row.original.Published ? 'success' : 'neutral'" variant="subtle">
+            {{ row.original.Published ? 'Published' : 'Unpublished' }}
+          </UBadge>
+        </template>
+
+        <template #actions-cell="{ row }">
+          <div class="flex items-center gap-2">
+            <UButton
+              icon="i-lucide-edit"
+              variant="ghost"
+              color="neutral"
+              :to="row.original.Id ? `/category/edit/${row.original.Id}` : undefined"
+              :disabled="!row.original.Id"
+            />
+          </div>
+        </template>
+      </UTable>
+
+      <div class="flex items-center justify-between gap-3 border-t border-default pt-4 mt-auto">
+        <div class="text-sm text-muted">
+          Total {{ data?.TotalCount || 0 }} categories
         </div>
 
-        <UTable
-          ref="table"
-          :data="tableData"
-          :columns="columns"
-          :loading="loading"
-          class="flex-1"
-        >
-          <template #Published-cell="{ row }">
-            <UBadge :color="row.original.Published ? 'success' : 'neutral'" variant="subtle">
-              {{ row.original.Published ? 'Published' : 'Unpublished' }}
-            </UBadge>
-          </template>
-
-          <template #actions-cell="{ row }">
-            <div class="flex items-center gap-2">
-              <UButton
-                icon="i-lucide-edit"
-                variant="ghost"
-                color="neutral"
-                :to="row.original.Id ? `/category/edit/${row.original.Id}` : undefined"
-                :disabled="!row.original.Id"
-              />
-            </div>
-          </template>
-        </UTable>
-
-        <div class="flex items-center justify-between border-t border-default pt-4">
-          <div class="text-sm text-muted">
-            Total {{ data?.TotalCount || 0 }} categories
-          </div>
-
+        <div class="flex items-center gap-1.5">
           <UPagination
             v-model:page="page"
             :items-per-page="pageSize"
@@ -66,42 +78,90 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
+import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
 import type { CategoryDto } from '~/types/catalog/Category'
 import type { PagedList } from '~/types/common/PagedList'
 import CategoryService from '~/services/CategoryService'
 import { useDebounceFn } from '@vueuse/core'
+import { PermissionSystemName, PermissionActionName } from '~/types/identity/permissions'
 
 // Define a type that includes the patched 'id'
 type TableRow = CategoryDto & { id: string }
 
 const toast = useToast()
-const table = useTemplateRef('table')
+
+const { hasPermission } = useSitemap()
 
 // Pagination & Filter State
 const page = ref(1)
 const pageSize = ref(20)
 const nameFilter = ref('')
 
-// Columns definition
-const columns: TableColumn<TableRow>[] = [
-  {
-    accessorKey: 'Name',
-    header: 'Name',
-  },
-  {
-    accessorKey: 'Published',
-    header: 'Published',
-  },
-  {
-    accessorKey: 'DisplayOrder',
-    header: 'Order',
-  },
-  {
-    id: 'actions',
-    header: 'Actions'
+const canCreate = computed(() => hasPermission(PermissionSystemName.Categories, PermissionActionName.Create))
+const canView = computed(() => hasPermission(PermissionSystemName.Categories, PermissionActionName.Edit))
+const canImport = computed(() => hasPermission(PermissionSystemName.Categories, PermissionActionName.Import))
+const canExport = computed(() => hasPermission(PermissionSystemName.Categories, PermissionActionName.Export))
+
+const headerActions = computed<DropdownMenuItem[][]>(() => {
+  const actions: DropdownMenuItem[] = []
+
+  if (canCreate.value) {
+    actions.push({
+      label: 'Add Category',
+      icon: 'i-hugeicons-plus-sign-circle',
+      to: '/category/create'
+    })
   }
-]
+
+  if (canImport.value) {
+    actions.push({
+      label: 'Import',
+      icon: 'i-hugeicons-download-01',
+      onSelect: () => {
+        toast.add({ title: 'Import', description: 'Import feature coming soon' })
+      }
+    })
+  }
+
+  if (canExport.value) {
+    actions.push({
+      label: 'Export',
+      icon: 'i-hugeicons-upload-01',
+      onSelect: () => {
+        toast.add({ title: 'Export', description: 'Export feature coming soon' })
+      }
+    })
+  }
+
+  return [actions]
+})
+
+// Columns definition
+const columns = computed<TableColumn<TableRow>[]>(() => {
+  const cols: TableColumn<TableRow>[] = [
+    {
+      accessorKey: 'Name',
+      header: 'Name',
+    },
+    {
+      accessorKey: 'Published',
+      header: 'Published',
+    },
+    {
+      accessorKey: 'DisplayOrder',
+      header: 'Order',
+    }
+  ]
+
+  if (canView.value) {
+    cols.push({
+      id: 'actions',
+      header: 'Actions'
+    })
+  }
+
+  return cols
+})
 
 // Data Fetching
 const loading = ref(false)
@@ -119,14 +179,14 @@ const tableData = computed<TableRow[]>(() => {
 
 const fetchCategories = async () => {
   loading.value = true
+
   try {
-    console.log('Fetching categories...')
     const response = await CategoryService.getCategories({
       CurrentPage: page.value,
       PageSize: pageSize.value,
       Name: nameFilter.value || undefined
     })
-    console.log('Categories response:', response)
+
     data.value = response
   }
   catch (error) {

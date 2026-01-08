@@ -26,6 +26,7 @@ class SitemapService {
       if (cached) {
         try {
           const parsed = JSON.parse(cached) as SitemapNodeWithPermissionDto;
+
           return parsed;
         } catch {}
       }
