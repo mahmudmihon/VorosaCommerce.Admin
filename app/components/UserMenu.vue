@@ -26,15 +26,15 @@ const items = computed<DropdownMenuItem[][]>(() => ([
   }],
   [{
     label: 'Profile',
-    icon: 'i-lucide-user',
+    icon: 'i-solar:user-id-bold-duotone',
     to: '/settings'
   }],
   [{
     label: 'Appearance',
-    icon: 'i-lucide-sun-moon',
+    icon: 'i-solar:moon-stars-bold-duotone',
     children: [{
       label: 'Light',
-      icon: 'i-lucide-sun',
+      icon: 'i-solar:sun-bold-duotone',
       type: 'checkbox',
       checked: colorMode.value === 'light',
       onSelect(e: Event) {
@@ -45,7 +45,7 @@ const items = computed<DropdownMenuItem[][]>(() => ([
     },
     {
       label: 'Dark',
-      icon: 'i-lucide-moon',
+      icon: 'i-solar:moon-stars-bold-duotone',
       type: 'checkbox',
       checked: colorMode.value === 'dark',
       onUpdateChecked(checked: boolean) {
@@ -60,7 +60,7 @@ const items = computed<DropdownMenuItem[][]>(() => ([
   }],
   [{
     label: 'Log out',
-    icon: 'i-lucide-log-out',
+    icon: 'i-solar:logout-3-bold-duotone',
     onSelect: async () => {
       await clear()
       router.push('/signin')

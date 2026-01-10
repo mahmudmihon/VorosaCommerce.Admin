@@ -1,19 +1,18 @@
-<script setup lang="ts">
-</script>
-
 <template>
   <UDashboardPanel>
-    <UDashboardNavbar title="Create Category">
-         <template #right>
-             <UButton label="Back" variant="ghost" to="/category/list" icon="i-lucide-arrow-left" />
+    <template #header>
+      <UDashboardNavbar title="Create Category">
+        <template #right>
+          <UButton label="Back" variant="ghost" color="neutral" to="/category/list" icon="i-lucide-arrow-left" />
         </template>
-    </UDashboardNavbar>
+      </UDashboardNavbar>
+    </template>
     <template #body>
-      <UCard>
-        <div class="p-4">
-          Create Category (Not implemented yet)
-        </div>
-      </UCard>
+      <CategoryForm />
     </template>
   </UDashboardPanel>
 </template>
+
+<script setup lang="ts">
+  import CategoryForm from '~/components/category/CategoryForm.vue'
+</script>

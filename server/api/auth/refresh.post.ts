@@ -1,4 +1,4 @@
-import { TokenResponseDto } from '~~/shared/types/token-response'
+import type { TokenResponseDto } from '~~/shared/types/token-response'
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)

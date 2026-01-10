@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { TokenResponseDto } from '~~/shared/types/token-response'
+import type { TokenResponseDto } from '~~/shared/types/token-response'
 
 const bodySchema = z.object({
   email: z.email({}),

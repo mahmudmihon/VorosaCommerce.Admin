@@ -6,10 +6,10 @@
           <UDropdownMenu :items="headerActions">
             <UButton
               label="Actions"
-              icon="i-lucide-chevron-down"
+              icon="i-solar:round-alt-arrow-down-line-duotone"
               trailing
               color="neutral"
-              variant="outline"
+              variant="soft"
             />
           </UDropdownMenu>
         </template>
@@ -108,7 +108,7 @@ const headerActions = computed<DropdownMenuItem[][]>(() => {
   if (canCreate.value) {
     actions.push({
       label: 'Add Category',
-      icon: 'i-hugeicons-plus-sign-circle',
+      icon: 'i-solar:add-circle-bold-duotone',
       to: '/category/create'
     })
   }
@@ -116,7 +116,7 @@ const headerActions = computed<DropdownMenuItem[][]>(() => {
   if (canImport.value) {
     actions.push({
       label: 'Import',
-      icon: 'i-hugeicons-download-01',
+      icon: 'i-solar:import-bold-duotone',
       onSelect: () => {
         toast.add({ title: 'Import', description: 'Import feature coming soon' })
       }
@@ -126,7 +126,7 @@ const headerActions = computed<DropdownMenuItem[][]>(() => {
   if (canExport.value) {
     actions.push({
       label: 'Export',
-      icon: 'i-hugeicons-upload-01',
+      icon: 'i-solar:export-bold-duotone',
       onSelect: () => {
         toast.add({ title: 'Export', description: 'Export feature coming soon' })
       }
