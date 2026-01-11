@@ -1,74 +1,85 @@
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 h-full overflow-auto">
     <UTabs
       v-model="currentTab"
       :items="items"
       variant="link"
+      :ui="{ list: 'sticky top-0 z-10 bg-default' }"
     >
+      <template #list-trailing>
+        <div class="ml-auto flex items-center gap-3">
+          <UModal
+            v-if="generalState.Id"
+            v-model:open="deleteModalOpen"
+            title="Delete category"
+            description="This action cannot be undone."
+          >
+            <UTooltip text="Delete">
+              <UButton
+                icon="i-solar:trash-bin-2-bold-duotone"
+                color="error"
+                variant="soft"
+                square
+                size="md"
+                :loading="deleteLoading"
+                aria-label="Delete category"
+                class="cursor-pointer"
+              >
+                Delete
+              </UButton>
+            </UTooltip>
+
+            <template #body>
+              <div class="flex justify-end gap-2">
+                <UButton
+                  label="Cancel"
+                  color="neutral"
+                  variant="subtle"
+                  :disabled="deleteLoading"
+                  @click="deleteModalOpen = false"
+                  class="cursor-pointer"
+                />
+                <UButton
+                  label="Delete"
+                  color="error"
+                  variant="solid"
+                  :loading="deleteLoading"
+                  @click="onDelete"
+                  class="cursor-pointer"
+                />
+              </div>
+            </template>
+          </UModal>
+          <UButton
+            icon="solar:diskette-bold-duotone"
+            size="md"
+            color="primary"
+            variant="solid"
+            class="cursor-pointer"
+            @click="currentTab === 'general' ? onGeneralSubmit() : onSeoSubmit()"
+          >
+            Save
+          </UButton>
+        </div>
+      </template>
       <template #general>
         <UForm
           :schema="generalSchema"
           :state="generalState"
-          class="space-y-4 p-4"
+          class="space-y-4 p-4 pb-8"
           @submit="onGeneralSubmit"
         >
           <CategoryGeneralTab v-model:state="generalState" />
-          <USeparator class="mt-6 max-w-[896px]" />
-
-          <div class="flex max-w-[896px] justify-end gap-3">
-            <UButton
-              type="button"
-              color="neutral"
-              variant="outline"
-              size="md"
-              class="cursor-pointer"
-              @click="onCancel"
-            >
-              Cancel
-            </UButton>
-            <UButton
-              icon="solar:diskette-bold-duotone"
-              size="md"
-              color="primary"
-              variant="solid"
-              class="cursor-pointer"
-            >
-              Save
-            </UButton>
-          </div>
         </UForm>
       </template>
       <template #seo>
         <UForm
           :schema="seoSchema"
           :state="seoState"
-          class="space-y-4 p-4"
+          class="space-y-4 p-4 pb-8"
           @submit="onSeoSubmit"
         >
           <CategorySeoTab :state="seoState" />
-          <USeparator class="mt-6 max-w-[896px]" />
-
-          <div class="flex max-w-[896px] justify-end gap-3">
-            <UButton
-              type="button"
-              color="neutral"
-              variant="outline"
-              size="md"
-              class="cursor-pointer"
-              @click="onCancel"
-            >
-              Cancel
-            </UButton>
-            <UButton
-              icon="solar:diskette-bold-duotone"
-              size="md"
-              color="primary"
-              variant="solid"
-              class="cursor-pointer"
-            >
-              Save
-            </UButton>
-          </div>
         </UForm>
       </template>
     </UTabs>
@@ -90,6 +101,8 @@ const props = defineProps<{
 const router = useRouter()
 const toast = useToast()
 const currentTab = ref('general')
+const deleteModalOpen = ref(false)
+const deleteLoading = ref(false)
 
 const generalState = reactive<UpsertCategoryInfoDto>({
   Id: props.initialData?.Id,
@@ -100,8 +113,8 @@ const generalState = reactive<UpsertCategoryInfoDto>({
   ShowOnHomePage: props.initialData?.ShowOnHomePage ?? false,
   Published: props.initialData?.Published ?? true,
   DisplayOrder: props.initialData?.DisplayOrder ?? 0,
-  Picture: { PictureId: props.initialData?.Picture?.Id },
-  Icon: { PictureId: props.initialData?.Icon?.Id }
+  Picture: { PictureId: props.initialData?.Picture?.Id, Url: props.initialData?.Picture?.Url },
+  Icon: { PictureId: props.initialData?.Icon?.Id, Url: props.initialData?.Icon?.Url }
 })
 
 const seoState = reactive<UpsertCategorySEOInfoDto>({
@@ -165,7 +178,21 @@ async function onSeoSubmit() {
   }
 }
 
-function onCancel() {
-  router.push('/category/list')
+async function onDelete() {
+  if (!generalState.Id) return
+
+  deleteLoading.value = true
+  try {
+    await CategoryService.deleteCategory(generalState.Id)
+    deleteModalOpen.value = false
+    toast.add({ title: 'Deleted', description: 'Category deleted successfully', color: 'success' })
+    router.push('/category/list')
+  }
+  catch {
+    toast.add({ title: 'Error', description: 'Failed to delete category', color: 'error' })
+  }
+  finally {
+    deleteLoading.value = false
+  }
 }
 </script>

@@ -18,15 +18,15 @@ const { data: category, status } = await useAsyncData(`category-${id}`, () => Ca
       </UDashboardNavbar>
     </template>
     <template #body>
-      <UCard :ui="{ body: 'p-0 sm:p-0' }">
+      <div class="h-full overflow-auto">
         <div v-if="status === 'pending'" class="p-4 flex justify-center">
-            <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl" />
+          <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl" />
         </div>
         <div v-else-if="status === 'error'" class="p-4 text-red-500">
-            Failed to load category
+          Failed to load category
         </div>
         <CategoryForm v-else-if="category" :initial-data="category" />
-      </UCard>
+      </div>
     </template>
   </UDashboardPanel>
 </template>

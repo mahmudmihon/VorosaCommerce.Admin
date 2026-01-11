@@ -42,7 +42,7 @@
         }"
       >
         <template #Published-cell="{ row }">
-          <UBadge :color="row.original.Published ? 'success' : 'neutral'" variant="subtle">
+          <UBadge :color="row.original.Published ? 'success' : 'error'" variant="subtle">
             {{ row.original.Published ? 'Published' : 'Unpublished' }}
           </UBadge>
         </template>
@@ -50,7 +50,7 @@
         <template #actions-cell="{ row }">
           <div class="flex items-center gap-2">
             <UButton
-              icon="i-lucide-edit"
+              icon="i-solar:pen-new-square-bold-duotone"
               variant="ghost"
               color="neutral"
               :to="row.original.Id ? `/category/edit/${row.original.Id}` : undefined"
@@ -66,6 +66,17 @@
         </div>
 
         <div class="flex items-center gap-1.5">
+          <UTooltip text="Refresh">
+            <UButton
+              class="cursor-pointer"
+              icon="i-solar:refresh-bold-duotone"
+              color="neutral"
+              variant="outline"
+              :loading="loading"
+              square
+              @click="fetchCategories"
+            />
+          </UTooltip>
           <UPagination
             v-model:page="page"
             :items-per-page="pageSize"

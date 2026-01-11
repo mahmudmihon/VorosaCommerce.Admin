@@ -19,6 +19,7 @@ export type CategoryDto = BaseEntity & {
 
 export interface PictureUpsertDto {
   PictureId?: string;
+  Url?: string;
   File?: File;
 }
 

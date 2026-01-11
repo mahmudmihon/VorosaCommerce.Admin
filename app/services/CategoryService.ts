@@ -19,6 +19,10 @@ class CategoryService {
     return await this.baseService.get<CategoryDto>(`${resource}/${id}`);
   }
 
+  async deleteCategory(id: string): Promise<void> {
+    await this.baseService.delete<void>(`${resource}/${id}`);
+  }
+
   async upsertCategory(command: UpsertCategoryInfoDto): Promise<CategoryDto> {
     const formData = new FormData();
     if (command.Id) formData.append('Id', command.Id);

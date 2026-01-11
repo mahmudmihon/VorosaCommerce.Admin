@@ -49,11 +49,12 @@
         class="font-medium"
       >
         <USelectMenu
-          v-model="selectedParent"
+          v-model="selectedParentId"
           :items="parentCategoryOptions"
           searchable
           placeholder="Select parent category"
-          option-attribute="label"
+          value-key="value"
+          label-key="label"
           class="w-full"
           size="xl"
         />
@@ -125,23 +126,77 @@
     <p class="text-sm text-muted-foreground mt-2">Upload category picture and icon</p>
 
     <div class="grid gap-4 sm:grid-cols-2 mt-6">
-      <UFileUpload
-        layout="list"
-        v-model="pictureFile"
-        label="Category picture"
-        description="SVG, PNG, JPG or GIF (max. 5MB)"
-        accept=".svg,.png,.jpg,.jpeg,.gif"
-        class="w-full min-h-48"
-      />
+      <div class="flex flex-col gap-3">
+        <div
+          v-if="picturePreviewUrl"
+          class="relative flex flex-col gap-3 rounded-2xl border border-default bg-elevated/25 p-3 min-h-48"
+        >
+          <UButton
+            type="button"
+            icon="i-solar:trash-bin-minimalistic-bold-duotone"
+            color="error"
+            variant="ghost"
+            size="md"
+            square
+            class="absolute right-2 top-2 z-100"
+            aria-label="Remove picture"
+            @click="removePicture"
+          />
+          <div class="flex-1 flex items-center justify-center">
+            <img
+              :src="picturePreviewUrl"
+              alt="Category picture"
+              class="max-h-44 w-auto object-contain"
+            >
+          </div>
+        </div>
 
-      <UFileUpload
-        layout="list"
-        v-model="iconFile"
-        label="Category icon"
-        description="SVG, PNG, JPG or GIF (max. 2MB)"
-        accept=".svg,.png,.jpg,.jpeg,.gif"
-        class="w-full min-h-48"
-      />
+        <UFileUpload
+          v-else
+          layout="list"
+          v-model="pictureFile"
+          label="Category picture"
+          description="SVG, PNG, JPG or GIF (max. 5MB)"
+          accept=".svg,.png,.jpg,.jpeg,.gif"
+          class="w-full min-h-48"
+        />
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <div
+          v-if="iconPreviewUrl"
+          class="relative flex flex-col gap-3 rounded-2xl border border-default bg-elevated/25 p-3 min-h-48"
+        >
+          <UButton
+            type="button"
+            icon="i-solar:trash-bin-minimalistic-bold-duotone"
+            color="error"
+            variant="ghost"
+            size="md"
+            square
+            class="absolute right-2 top-2 z-100"
+            aria-label="Remove icon"
+            @click="removeIcon"
+          />
+          <div class="flex-1 flex items-center justify-center">
+            <img
+              :src="iconPreviewUrl"
+              alt="Category icon"
+              class="max-h-44 w-auto object-contain"
+            >
+          </div>
+        </div>
+
+        <UFileUpload
+          v-else
+          layout="list"
+          v-model="iconFile"
+          label="Category icon"
+          description="SVG, PNG, JPG or GIF (max. 2MB)"
+          accept=".svg,.png,.jpg,.jpeg,.gif"
+          class="w-full min-h-48"
+        />
+      </div>
     </div>
   </UCard>
 </template>
@@ -169,17 +224,17 @@
     })) || []
   })
 
-  const selectedParent = computed({
-    get: (): ParentCategoryOption | undefined =>
-      parentCategoryOptions.value.find((o: ParentCategoryOption) => o.value === state.value.ParentCategoryId),
-    set: (val: ParentCategoryOption | undefined) => {
-      state.value.ParentCategoryId = val?.value
+  const selectedParentId = computed<string | undefined>({
+    get: () => state.value.ParentCategoryId || undefined,
+    set: (val) => {
+      state.value.ParentCategoryId = val || undefined
     }
   })
 
   const pictureFile = computed<File | undefined>({
     get: () => state.value.Picture?.File,
     set: (file) => {
+      if (!state.value.Picture) state.value.Picture = {}
       state.value.Picture.File = file
     }
   })
@@ -187,7 +242,43 @@
   const iconFile = computed<File | undefined>({
     get: () => state.value.Icon?.File,
     set: (file) => {
+      if (!state.value.Icon) state.value.Icon = {}
       state.value.Icon.File = file
     }
   })
+
+  const pictureObjectUrl = ref<string | undefined>(undefined)
+  const iconObjectUrl = ref<string | undefined>(undefined)
+
+  watch(pictureFile, (file) => {
+    if (pictureObjectUrl.value) URL.revokeObjectURL(pictureObjectUrl.value)
+    pictureObjectUrl.value = file ? URL.createObjectURL(file) : undefined
+  })
+
+  watch(iconFile, (file) => {
+    if (iconObjectUrl.value) URL.revokeObjectURL(iconObjectUrl.value)
+    iconObjectUrl.value = file ? URL.createObjectURL(file) : undefined
+  })
+
+  onBeforeUnmount(() => {
+    if (pictureObjectUrl.value) URL.revokeObjectURL(pictureObjectUrl.value)
+    if (iconObjectUrl.value) URL.revokeObjectURL(iconObjectUrl.value)
+  })
+
+  const picturePreviewUrl = computed(() => pictureObjectUrl.value || state.value.Picture?.Url)
+  const iconPreviewUrl = computed(() => iconObjectUrl.value || state.value.Icon?.Url)
+
+  const removePicture = () => {
+    if (!state.value.Picture) state.value.Picture = {}
+    state.value.Picture.File = undefined
+    state.value.Picture.PictureId = undefined
+    state.value.Picture.Url = undefined
+  }
+
+  const removeIcon = () => {
+    if (!state.value.Icon) state.value.Icon = {}
+    state.value.Icon.File = undefined
+    state.value.Icon.PictureId = undefined
+    state.value.Icon.Url = undefined
+  }
 </script>
