@@ -34,7 +34,7 @@ export default defineNuxtConfig({
   ssr: false,
 
   hooks: {
-    'nitro:config': (nitroConfig) => {
+    'nitro:config': (_nitroConfig) => {
       if (process.env.NODE_ENV === 'development') {
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
       }

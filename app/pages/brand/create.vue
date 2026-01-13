@@ -1,24 +1,25 @@
 <template>
   <UDashboardPanel>
     <template #header>
-      <UDashboardNavbar title="Create Category">
+      <UDashboardNavbar title="Create Brand">
         <template #right>
           <UButton
             label="Back"
             variant="ghost"
             color="neutral"
-            to="/category/list"
+            to="/brand/list"
             icon="i-lucide-arrow-left"
           />
         </template>
       </UDashboardNavbar>
     </template>
     <template #body>
-      <CategoryForm />
+      <BrandForm />
     </template>
   </UDashboardPanel>
 </template>
 
 <script setup lang="ts">
-import CategoryForm from '~/components/category/CategoryForm.vue'
+import BrandForm from '~/components/brand/BrandForm.vue'
 </script>
+

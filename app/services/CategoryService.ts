@@ -11,7 +11,7 @@ class CategoryService {
     this.baseService = BaseService;
   }
 
-  async getCategories(params: any): Promise<PagedList<CategoryDto>> {
+  async getCategories(params: Record<string, unknown>): Promise<PagedList<CategoryDto>> {
     return await this.baseService.get<PagedList<CategoryDto>>(resource, params);
   }
 
@@ -20,7 +20,7 @@ class CategoryService {
   }
 
   async deleteCategory(id: string): Promise<void> {
-    await this.baseService.delete<void>(`${resource}/${id}`);
+    await this.baseService.delete(`${resource}/${id}`);
   }
 
   async upsertCategory(command: UpsertCategoryInfoDto): Promise<CategoryDto> {

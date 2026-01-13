@@ -11,7 +11,7 @@
           <UModal
             v-if="generalState.Id"
             v-model:open="deleteModalOpen"
-            title="Delete category"
+            title="Delete brand"
             description="This action cannot be undone."
           >
             <UTooltip text="Delete">
@@ -22,7 +22,7 @@
                 square
                 size="md"
                 :loading="deleteLoading"
-                aria-label="Delete category"
+                aria-label="Delete brand"
                 class="cursor-pointer"
               >
                 Delete
@@ -69,7 +69,7 @@
           class="space-y-4 p-4 pb-8"
           @submit="onGeneralSubmit"
         >
-          <CategoryGeneralTab v-model:state="generalState" />
+          <BrandGeneralTab v-model:state="generalState" />
         </UForm>
       </template>
       <template #seo>
@@ -79,7 +79,7 @@
           class="space-y-4 p-4 pb-8"
           @submit="onSeoSubmit"
         >
-          <CategorySeoTab v-model:state="seoState" />
+          <BrandSeoTab v-model:state="seoState" />
         </UForm>
       </template>
     </UTabs>
@@ -89,13 +89,13 @@
 <script setup lang="ts">
 import * as z from 'zod'
 import type { TabsItem } from '@nuxt/ui'
-import CategoryService from '~/services/CategoryService'
-import type { CategoryDto, UpsertCategoryInfoDto, UpsertCategorySEOInfoDto } from '~/types/catalog/Category'
-import CategoryGeneralTab from './CategoryGeneralTab.vue'
-import CategorySeoTab from './CategorySeoTab.vue'
+import BrandService from '~/services/BrandService'
+import type { BrandDto, UpsertBrandInfoDto, UpsertBrandSEOInfoDto } from '~/types/catalog/Brand'
+import BrandGeneralTab from './BrandGeneralTab.vue'
+import BrandSeoTab from './BrandSeoTab.vue'
 
 const props = defineProps<{
-  initialData?: CategoryDto
+  initialData?: BrandDto
 }>()
 
 const router = useRouter()
@@ -104,20 +104,17 @@ const currentTab = ref('general')
 const deleteModalOpen = ref(false)
 const deleteLoading = ref(false)
 
-const generalState = reactive<UpsertCategoryInfoDto>({
+const generalState = reactive<UpsertBrandInfoDto>({
   Id: props.initialData?.Id,
   Name: props.initialData?.Name || '',
   Description: props.initialData?.Description,
-  ParentCategoryId: props.initialData?.ParentCategoryId,
-  IncludeInMenu: props.initialData?.IncludeInMenu ?? false,
-  ShowOnHomePage: props.initialData?.ShowOnHomePage ?? false,
   Published: props.initialData?.Published ?? true,
   DisplayOrder: props.initialData?.DisplayOrder ?? 0,
   Picture: { PictureId: props.initialData?.Picture?.Id, Url: props.initialData?.Picture?.Url },
   Icon: { PictureId: props.initialData?.Icon?.Id, Url: props.initialData?.Icon?.Url }
 })
 
-const seoState = reactive<UpsertCategorySEOInfoDto>({
+const seoState = reactive<UpsertBrandSEOInfoDto>({
   Id: props.initialData?.Id || '',
   SeName: props.initialData?.SeName || '',
   MetaKeywords: props.initialData?.MetaKeywords,
@@ -149,14 +146,14 @@ const seoSchema = z.object({
 
 async function onGeneralSubmit() {
   try {
-    const result = await CategoryService.upsertCategory(generalState)
+    const result = await BrandService.upsertBrand(generalState)
 
-    toast.add({ title: 'Success', description: 'Category saved successfully', color: 'success' })
+    toast.add({ title: 'Success', description: 'Brand saved successfully', color: 'success' })
 
     if (!generalState.Id) {
       generalState.Id = result.Id
       seoState.Id = result.Id
-      router.push(`/category/edit/${result.Id}`)
+      router.push(`/brand/edit/${result.Id}`)
     }
     else {
       generalState.Id = result.Id
@@ -164,13 +161,13 @@ async function onGeneralSubmit() {
     }
   }
   catch {
-    toast.add({ title: 'Error', description: 'Failed to save category', color: 'error' })
+    toast.add({ title: 'Error', description: 'Failed to save brand', color: 'error' })
   }
 }
 
 async function onSeoSubmit() {
   try {
-    await CategoryService.updateCategorySeo(seoState)
+    await BrandService.updateBrandSeo(seoState)
     toast.add({ title: 'Success', description: 'SEO info updated successfully', color: 'success' })
   }
   catch {
@@ -183,13 +180,13 @@ async function onDelete() {
 
   deleteLoading.value = true
   try {
-    await CategoryService.deleteCategory(generalState.Id)
+    await BrandService.deleteBrand(generalState.Id)
     deleteModalOpen.value = false
-    toast.add({ title: 'Deleted', description: 'Category deleted successfully', color: 'success' })
-    router.push('/category/list')
+    toast.add({ title: 'Deleted', description: 'Brand deleted successfully', color: 'success' })
+    router.push('/brand/list')
   }
   catch {
-    toast.add({ title: 'Error', description: 'Failed to delete category', color: 'error' })
+    toast.add({ title: 'Error', description: 'Failed to delete brand', color: 'error' })
   }
   finally {
     deleteLoading.value = false

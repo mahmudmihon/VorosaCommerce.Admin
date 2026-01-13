@@ -19,7 +19,7 @@ const ApiService = async <T>(endpoint: string, options: FetchOptions<'json'> = {
   })
   options.headers = withAuthHeaders(options.headers, token);
   console.debug('[ApiService] headers', {
-    hasAuth: !!(options.headers as any)?.Authorization,
+    hasAuth: !!new Headers(options.headers).get('Authorization'),
     endpoint
   })
 
@@ -27,7 +27,7 @@ const ApiService = async <T>(endpoint: string, options: FetchOptions<'json'> = {
     return await $fetch<T>(endpoint, options);
   }
   catch (err) {
-    const status = (err as FetchError)?.response?.status ?? (err as any)?.status;
+    const status = getErrorStatus(err);
     
     if (status === 401) {
       if (!canRefresh(session)) throw err;
@@ -35,7 +35,7 @@ const ApiService = async <T>(endpoint: string, options: FetchOptions<'json'> = {
       const refreshedToken = await getAccessToken(session, refreshSession, true);
       options.headers = withAuthHeaders(options.headers, refreshedToken);
       console.debug('[ApiService] headers after refresh', {
-        hasAuth: !!(options.headers as any)?.Authorization,
+        hasAuth: !!new Headers(options.headers).get('Authorization'),
         endpoint
       })
       return await $fetch<T>(endpoint, options);
@@ -47,18 +47,18 @@ const ApiService = async <T>(endpoint: string, options: FetchOptions<'json'> = {
 export default ApiService;
 
 async function getAccessToken(
-  session: Ref<any>,
+  session: Ref<unknown>,
   refreshSession: () => Promise<void>,
   forceRefresh = false
 ): Promise<string | undefined> {
-  let token = session.value?.user?.accessToken;
-  let exp = session.value?.user?.accessExp;
+  let token = getSessionUser(session)?.accessToken;
+  let exp = getSessionUser(session)?.accessExp;
   let expired = !!exp && exp <= Date.now();
 
   if (!token && !forceRefresh) {
     await refreshSession();
-    token = session.value?.user?.accessToken;
-    exp = session.value?.user?.accessExp;
+    token = getSessionUser(session)?.accessToken;
+    exp = getSessionUser(session)?.accessExp;
     expired = !!exp && exp <= Date.now();
     console.debug('[ApiService] hydrated session', { present: !!token, expired })
   }
@@ -72,7 +72,7 @@ async function getAccessToken(
           .finally(() => { refreshPromise = null });
       }
       await refreshPromise;
-      token = session.value?.user?.accessToken;
+      token = getSessionUser(session)?.accessToken;
       console.debug('[ApiService] refreshed token', { present: !!token })
     }
   }
@@ -89,6 +89,30 @@ function withAuthHeaders(headers: HeadersInit | undefined, token?: string): Head
   return out;
 }
 
-function canRefresh(session: Ref<any>): boolean {
-  return !!session.value?.user;
+function canRefresh(session: Ref<unknown>): boolean {
+  return !!getSessionUser(session);
+}
+
+function getSessionUser(session: Ref<unknown>): { accessToken?: string, accessExp?: number } | undefined {
+  if (!session.value || typeof session.value !== 'object') return undefined;
+  const maybe = session.value as { user?: unknown };
+  if (!maybe.user || typeof maybe.user !== 'object') return undefined;
+  const user = maybe.user as { accessToken?: unknown, accessExp?: unknown };
+  return {
+    accessToken: typeof user.accessToken === 'string' ? user.accessToken : undefined,
+    accessExp: typeof user.accessExp === 'number' ? user.accessExp : undefined
+  }
+}
+
+function getErrorStatus(err: unknown): number | undefined {
+  const fetchError = err as FetchError | undefined
+  const fromFetch = fetchError?.response?.status
+  if (typeof fromFetch === 'number') return fromFetch
+
+  if (err && typeof err === 'object') {
+    const maybe = (err as { status?: unknown }).status
+    if (typeof maybe === 'number') return maybe
+  }
+
+  return undefined
 }

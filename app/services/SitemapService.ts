@@ -28,7 +28,10 @@ class SitemapService {
           const parsed = JSON.parse(cached) as SitemapNodeWithPermissionDto;
 
           return parsed;
-        } catch {}
+        }
+        catch (err) {
+          void err
+        }
       }
 
       const fresh = await this.baseService.get<SitemapNodeWithPermissionDto>(resource);
@@ -36,7 +39,9 @@ class SitemapService {
       try {
         localStorage.setItem(key, JSON.stringify(fresh));
       }
-      catch {}
+      catch (err) {
+        void err
+      }
 
       return fresh;
     }
@@ -48,7 +53,9 @@ class SitemapService {
     try {
       localStorage.setItem(key, JSON.stringify(fresh));
     }
-    catch {}
+    catch (err) {
+      void err
+    }
 
     return fresh;
   }

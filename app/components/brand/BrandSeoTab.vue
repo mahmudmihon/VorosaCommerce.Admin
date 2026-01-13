@@ -12,7 +12,7 @@
       />
       <h3 class="text-xl font-medium">Search Engine Optimization</h3>
     </div>
-    <p class="text-sm text-muted-foreground mt-2">Optimize your category for better search visibility</p>
+    <p class="text-sm text-muted-foreground mt-2">Optimize your brand for better search visibility</p>
 
     <UFormField
       label="Search Engine Friendly Name"
@@ -73,8 +73,8 @@
 </template>
 
 <script setup lang="ts">
-  import { Icon } from '@iconify/vue'
-  import type { UpsertCategorySEOInfoDto } from '~/types/catalog/Category'
+import { Icon } from '@iconify/vue'
+import type { UpsertBrandSEOInfoDto } from '~/types/catalog/Brand'
 
-  defineModel<UpsertCategorySEOInfoDto>('state', { required: true })
+defineModel<UpsertBrandSEOInfoDto>('state', { required: true })
 </script>

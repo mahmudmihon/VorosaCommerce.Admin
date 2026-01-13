@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import CategoryService from '~/services/CategoryService'
-import CategoryForm from '~/components/category/CategoryForm.vue'
+import BrandService from '~/services/BrandService'
+import BrandForm from '~/components/brand/BrandForm.vue'
 
 const route = useRoute()
 const id = route.params.id as string
 
-const { data: category, status } = await useAsyncData(`category-${id}`, () => CategoryService.getCategoryById(id))
+const { data: brand, status } = await useAsyncData(`brand-${id}`, () => BrandService.getBrandById(id))
 </script>
 
 <template>
   <UDashboardPanel>
     <template #header>
-      <UDashboardNavbar title="Edit Category">
+      <UDashboardNavbar title="Edit Brand">
         <template #right>
           <UButton
             label="Back"
             variant="ghost"
             color="neutral"
-            to="/category/list"
+            to="/brand/list"
             icon="i-lucide-arrow-left"
           />
         </template>
@@ -29,9 +29,9 @@ const { data: category, status } = await useAsyncData(`category-${id}`, () => Ca
           <UIcon name="i-lucide-loader-2" class="animate-spin text-2xl" />
         </div>
         <div v-else-if="status === 'error'" class="p-4 text-red-500">
-          Failed to load category
+          Failed to load brand
         </div>
-        <CategoryForm v-else-if="category" :initial-data="category" />
+        <BrandForm v-else-if="brand" :initial-data="brand" />
       </div>
     </template>
   </UDashboardPanel>
