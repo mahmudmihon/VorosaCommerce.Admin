@@ -53,6 +53,7 @@
               icon="i-solar:pen-new-square-bold-duotone"
               variant="ghost"
               color="neutral"
+              class="cursor-pointer transition-colors hover:text-secondary hover:bg-secondary/10"
               :to="row.original.Id ? `/brand/edit/${row.original.Id}` : undefined"
               :disabled="!row.original.Id"
             />

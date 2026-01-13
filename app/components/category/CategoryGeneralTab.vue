@@ -153,8 +153,8 @@
 
         <UFileUpload
           v-else
-          layout="list"
           v-model="pictureFile"
+          layout="list"
           label="Category picture"
           description="SVG, PNG, JPG or GIF (max. 5MB)"
           accept=".svg,.png,.jpg,.jpeg,.gif"
@@ -189,8 +189,8 @@
 
         <UFileUpload
           v-else
-          layout="list"
           v-model="iconFile"
+          layout="list"
           label="Category icon"
           description="SVG, PNG, JPG or GIF (max. 2MB)"
           accept=".svg,.png,.jpg,.jpeg,.gif"
