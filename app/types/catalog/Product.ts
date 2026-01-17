@@ -1,5 +1,5 @@
 import type { BaseEntity } from '..'
-import type { PictureDto } from '../common/Picture'
+import type { PictureDto, PictureUpsertDto } from '../common/Picture'
 
 export enum ManageInventoryMethod {
   DontManageStock = 10,
@@ -22,6 +22,7 @@ export enum ProductType {
 export type ProductDto = BaseEntity & {
   ProductType: ProductType
   Name: string
+  SeName?: string
   Sku: string
   ShortDescription: string
   FullDescription: string
@@ -45,4 +46,29 @@ export type ProductDto = BaseEntity & {
   Published: boolean
   Tags: string[]
   Pictures: PictureDto[]
+}
+
+export interface UpsertProductInfoDto {
+  Id?: string
+  ProductType: ProductType
+  Name: string
+  Sku: string
+  ShortDescription?: string
+  FullDescription?: string
+  Price: number
+  OldPrice: number
+  BrandId?: string
+  AvailableStartDateTimeUtc?: string | null
+  AvailableEndDateTimeUtc?: string | null
+  DisplayOrder: number
+  Published: boolean
+  Pictures: PictureUpsertDto[]
+}
+
+export interface UpsertProductSEOInfoDto {
+  Id: string
+  SeName: string
+  MetaKeywords?: string
+  MetaDescription?: string
+  MetaTitle?: string
 }

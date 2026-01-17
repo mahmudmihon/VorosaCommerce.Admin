@@ -286,9 +286,9 @@
   const brandOptions = ref<SelectOption[]>([])
 
   const publishedItems = [
-    { label: 'All', value: 'all' },
-    { label: 'Only Published', value: 'published' },
-    { label: 'Only Unpublished', value: 'unpublished' }
+    { label: 'All', value: '0' },
+    { label: 'Only Published', value: '1' },
+    { label: 'Only Unpublished', value: '2' }
   ]
 
   const rowSelection = ref<Record<string, boolean>>({})
