@@ -162,12 +162,11 @@
     <UFormField
       label="Full Description"
       name="FullDescription"
-      class="mt-4 font-medium"
+      class="mt-6 font-medium"
     >
-      <Editor
+      <RichEditor
+        id="product-full-description"
         v-model="state.FullDescription"
-        placeholder="Write full description..."
-        min-height-class="min-h-48"
       />
     </UFormField>
   </UCard>
@@ -254,10 +253,10 @@
 <script setup lang="ts">
   import { Icon } from '@iconify/vue'
   import BrandService from '~/services/BrandService'
-  import Editor from '~/components/common/Editor.vue'
   import { ProductType, type UpsertProductInfoDto } from '~/types/catalog/Product'
   import type { BrandDto } from '~/types/catalog/Brand'
   import type { PagedList } from '~/types/common/PagedList'
+  import RichEditor from '~/components/common/RichEditor.vue'
 
   const state = defineModel<UpsertProductInfoDto>('state', { required: true })
 
