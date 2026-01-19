@@ -97,6 +97,11 @@
           <ProductMappingsTab :product-id="generalState.Id" />
         </div>
       </template>
+      <template #attributes>
+        <div class="space-y-4 p-4 pb-8">
+          <ProductAttributesTab :product-id="generalState.Id" />
+        </div>
+      </template>
     </UTabs>
   </div>
 </template>
@@ -108,6 +113,7 @@
   import { LowStockActivity, ManageInventoryMethod, ProductType, type ProductDto, type UpsertProductInfoDto, type UpsertProductInventoryDto, type UpsertProductSEOInfoDto } from '~/types/catalog/Product'
   import ProductGeneralTab from './ProductGeneralTab.vue'
   import ProductInventoryTab from './ProductInventoryTab.vue'
+  import ProductAttributesTab from './ProductAttributesTab.vue'
   import ProductMappingsTab from './ProductMappingsTab.vue'
   import ProductSeoTab from './ProductSeoTab.vue'
 
@@ -200,6 +206,11 @@
       label: 'Mappings',
       slot: 'mappings',
       value: 'mappings'
+    },
+    {
+      label: 'Product Attributes',
+      slot: 'attributes',
+      value: 'attributes'
     }
   ])
 
