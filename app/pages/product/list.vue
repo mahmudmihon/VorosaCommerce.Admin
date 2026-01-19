@@ -145,7 +145,7 @@
                 icon="i-solar:pen-new-square-bold-duotone"
                 variant="ghost"
                 color="neutral"
-                class="cursor-pointer transition-colors hover:text-primary hover:bg-primary/10"
+                class="cursor-pointer transition-colors hover:text-secondary hover:bg-secondary/10"
                 :to="row.original.Id ? `/product/edit/${row.original.Id}` : undefined"
                 :disabled="!row.original.Id"
               />
@@ -286,9 +286,9 @@
   const brandOptions = ref<SelectOption[]>([])
 
   const publishedItems = [
-    { label: 'All', value: '0' },
-    { label: 'Only Published', value: '1' },
-    { label: 'Only Unpublished', value: '2' }
+    { label: 'All', value: 'all' },
+    { label: 'Only Published', value: 'published' },
+    { label: 'Only Unpublished', value: 'unpublished' }
   ]
 
   const rowSelection = ref<Record<string, boolean>>({})
@@ -471,13 +471,19 @@
     loading.value = true
 
     try {
+      const publishedId = publishedFilter.value === 'all'
+        ? 0
+        : publishedFilter.value === 'published'
+          ? 1
+          : 2
+
       const response = await ProductService.getProducts({
         CurrentPage: page.value,
         PageSize: pageSize.value,
-        Name: searchTerm.value || undefined,
-        Published: publishedFilter.value === 'all' ? undefined : publishedFilter.value === 'published',
-        CategoryId: selectedCategoryIds.value.length ? selectedCategoryIds.value : undefined,
-        BrandId: selectedBrandIds.value.length ? selectedBrandIds.value : undefined
+        SearchTerm: searchTerm.value || undefined,
+        PublishedId: publishedId,
+        CategoryIds: selectedCategoryIds.value.length ? selectedCategoryIds.value : undefined,
+        BrandIds: selectedBrandIds.value.length ? selectedBrandIds.value : undefined
       })
 
       data.value = response

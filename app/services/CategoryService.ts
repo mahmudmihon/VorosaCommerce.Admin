@@ -42,7 +42,7 @@ class CategoryService {
     if (command.Icon.PictureId) formData.append('Icon.PictureId', command.Icon.PictureId);
     if (command.Icon.File) formData.append('Icon.File', command.Icon.File);
 
-    return await this.baseService.post<CategoryDto>(`${resource}/upsert`, formData);
+    return await this.baseService.post<CategoryDto>(`${resource}/general`, formData);
   }
 
   async updateCategorySeo(command: UpsertCategorySEOInfoDto): Promise<CategoryDto> {

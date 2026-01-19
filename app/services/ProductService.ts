@@ -1,6 +1,6 @@
 import BaseService from './BaseService'
 import type { PagedList } from '~/types/common/PagedList'
-import type { ProductDto, UpsertProductInfoDto, UpsertProductSEOInfoDto } from '~/types/catalog/Product'
+import type { ProductCategoryDto, ProductDto, UpsertProductCategoryDto, UpsertProductInfoDto, UpsertProductInventoryDto, UpsertProductSEOInfoDto } from '~/types/catalog/Product'
 
 const resource = '/api/v1/admin/product'
 
@@ -19,31 +19,28 @@ class ProductService {
     return await this.baseService.get<ProductDto>(`${resource}/${id}`)
   }
 
-  async upsertProduct(command: UpsertProductInfoDto): Promise<ProductDto> {
-    const formData = new FormData()
-
-    if (command.Id) formData.append('Id', command.Id)
-    formData.append('ProductType', String(command.ProductType))
-    formData.append('Name', command.Name)
-    formData.append('Sku', command.Sku)
-    if (command.ShortDescription) formData.append('ShortDescription', command.ShortDescription)
-    if (command.FullDescription) formData.append('FullDescription', command.FullDescription)
-    formData.append('Price', String(command.Price))
-    formData.append('OldPrice', String(command.OldPrice))
-    if (command.BrandId) formData.append('BrandId', command.BrandId)
-    formData.append('DisplayOrder', String(command.DisplayOrder))
-    formData.append('Published', String(command.Published))
-
-    for (const [index, picture] of (command.Pictures || []).entries()) {
-      if (picture.PictureId) formData.append(`Pictures[${index}].PictureId`, picture.PictureId)
-      if (picture.File) formData.append(`Pictures[${index}].File`, picture.File)
-    }
-
-    return await this.baseService.post<ProductDto>(`${resource}/upsert`, formData)
+  async upsertProduct(payload: UpsertProductInfoDto): Promise<ProductDto> {
+    return await this.baseService.post<ProductDto>(`${resource}/general`, payload)
   }
 
-  async updateProductSeo(command: UpsertProductSEOInfoDto): Promise<ProductDto> {
-    return await this.baseService.put<ProductDto>(`${resource}/seo`, command)
+  async updateProductSeo(payload: UpsertProductSEOInfoDto): Promise<ProductDto> {
+    return await this.baseService.put<ProductDto>(`${resource}/seo`, payload)
+  }
+
+  async updateProductInventory(payload: UpsertProductInventoryDto): Promise<ProductDto> {
+    return await this.baseService.put<ProductDto>(`${resource}/inventory`, payload)
+  }
+
+  async getProductCategories(id: string): Promise<ProductCategoryDto[]> {
+    return await this.baseService.get<ProductCategoryDto[]>(`${resource}/${id}/categories`)
+  }
+
+  async addProductCategory(id: string, payload: UpsertProductCategoryDto): Promise<void> {
+    await this.baseService.post(`${resource}/${id}/categories`, payload)
+  }
+
+  async deleteProductCategory(id: string, categoryId: string): Promise<void> {
+    await this.baseService.delete(`${resource}/${id}/categories/${categoryId}`)
   }
 
   async deleteProduct(id: string): Promise<void> {

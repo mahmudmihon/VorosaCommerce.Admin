@@ -1,7 +1,7 @@
 <template>
   <UCard
     variant="soft"
-    class="flex flex-col max-w-[896px] p-2 rounded-2xl"
+    class="flex flex-col max-w-4xl p-2 rounded-2xl"
   >
     <div class="flex gap-2 items-center">
       <Icon
@@ -14,53 +14,7 @@
     </div>
     <p class="text-sm text-muted-foreground mt-2">Define the core details of your product</p>
 
-    <UFormField
-      label="Name"
-      name="Name"
-      class="mt-6 font-medium"
-      required
-    >
-      <UInput
-        v-model="state.Name"
-        variant="outline"
-        size="xl"
-        placeholder="Enter product name"
-        class="w-full rounded-2xl"
-      />
-    </UFormField>
-
-    <div class="grid gap-5 sm:grid-cols-2 mt-4">
-      <UFormField
-        label="SKU"
-        name="Sku"
-        class="font-medium"
-        required
-      >
-        <UInput
-          v-model="state.Sku"
-          variant="outline"
-          size="xl"
-          placeholder="Enter sku"
-          class="w-full rounded-2xl"
-        />
-      </UFormField>
-
-      <UFormField
-        label="Display Order"
-        name="DisplayOrder"
-        class="font-medium"
-      >
-        <UInput
-          v-model="state.DisplayOrder"
-          size="xl"
-          type="number"
-          :min="0"
-          class="w-full rounded-2xl"
-        />
-      </UFormField>
-    </div>
-
-    <div class="grid gap-5 sm:grid-cols-2 mt-4">
+    <div class="grid gap-5 sm:grid-cols-2 mt-6">
       <UFormField
         label="Product Type"
         name="ProductType"
@@ -91,6 +45,38 @@
           label-key="label"
           class="w-full"
           size="xl"
+        />
+      </UFormField>
+    </div>
+
+    <div class="grid gap-5 sm:grid-cols-2 mt-4">
+      <UFormField
+        label="Name"
+        name="Name"
+        class="font-medium"
+        required
+      >
+        <UInput
+          v-model="state.Name"
+          variant="outline"
+          size="xl"
+          placeholder="Enter product name"
+          class="w-full rounded-2xl"
+        />
+      </UFormField>
+
+      <UFormField
+        label="SKU"
+        name="Sku"
+        class="font-medium"
+        required
+      >
+        <UInput
+          v-model="state.Sku"
+          variant="outline"
+          size="xl"
+          placeholder="Enter sku"
+          class="w-full rounded-2xl"
         />
       </UFormField>
     </div>
@@ -129,11 +115,45 @@
         />
       </UFormField>
     </div>
+
+    <div class="grid gap-5 sm:grid-cols-2 mt-4">
+      <UFormField
+        label="Display Order"
+        name="DisplayOrder"
+        class="font-medium"
+      >
+        <UInput
+          v-model="state.DisplayOrder"
+          size="xl"
+          type="number"
+          :min="0"
+          class="w-full rounded-2xl"
+        />
+      </UFormField>
+
+      <UFormField
+        label="Product Tags"
+        name="Tags"
+        class="font-medium"
+      >
+        <USelectMenu
+          v-model="selectedTags"
+          :items="tagOptions"
+          multiple
+          searchable
+          placeholder="Select tags"
+          value-key="value"
+          label-key="label"
+          class="w-full"
+          size="xl"
+        />
+      </UFormField>
+    </div>
   </UCard>
 
   <UCard
     variant="soft"
-    class="flex flex-col max-w-[896px] p-2 rounded-2xl mt-7"
+    class="flex flex-col max-w-4xl p-2 rounded-2xl mt-7"
   >
     <div class="flex gap-2 items-center">
       <Icon
@@ -173,7 +193,7 @@
 
   <UCard
     variant="soft"
-    class="flex flex-col max-w-[896px] p-2 rounded-2xl mt-7"
+    class="flex flex-col max-w-4xl p-2 rounded-2xl mt-7"
   >
     <div class="flex gap-2 items-center">
       <Icon
@@ -227,7 +247,7 @@
 
   <UCard
     variant="soft"
-    class="flex flex-col max-w-[896px] p-2 rounded-2xl mt-7"
+    class="flex flex-col max-w-4xl p-2 rounded-2xl mt-7"
   >
     <div class="flex gap-2 items-center">
       <Icon
@@ -253,8 +273,10 @@
 <script setup lang="ts">
   import { Icon } from '@iconify/vue'
   import BrandService from '~/services/BrandService'
+  import ProductTagService from '~/services/ProductTagService'
   import { ProductType, type UpsertProductInfoDto } from '~/types/catalog/Product'
   import type { BrandDto } from '~/types/catalog/Brand'
+  import type { ProductTagDto } from '~/types/catalog/ProductTag'
   import type { PagedList } from '~/types/common/PagedList'
   import RichEditor from '~/components/common/RichEditor.vue'
 
@@ -263,15 +285,28 @@
   type SelectOption = { label: string, value: string }
 
   const brands = ref<PagedList<BrandDto> | null>(null)
+  const tags = ref<PagedList<ProductTagDto> | null>(null)
 
   onMounted(async () => {
-    brands.value = await BrandService.getBrands({ PageSize: 1000 })
+    const [brandsResponse, tagsResponse] = await Promise.all([
+      BrandService.getBrands({ PageSize: 1000 }),
+      ProductTagService.getProductTags({ PageSize: 1000 })
+    ])
+    brands.value = brandsResponse
+    tags.value = tagsResponse
   })
 
   const brandOptions = computed<SelectOption[]>(() => {
     return brands.value?.Items?.map((b: BrandDto): SelectOption => ({
       label: b.Name,
       value: b.Id
+    })) || []
+  })
+
+  const tagOptions = computed<SelectOption[]>(() => {
+    return tags.value?.Items?.map((t: ProductTagDto): SelectOption => ({
+      label: t.Name,
+      value: t.Name
     })) || []
   })
 
@@ -282,9 +317,17 @@
     }
   })
 
+  const selectedTags = computed<string[]>({
+    get: () => state.value.Tags || [],
+    set: (val) => {
+      state.value.Tags = val || []
+    }
+  })
+
   const productTypeOptions = computed<SelectOption[]>(() => [
     { label: 'Simple Product', value: String(ProductType.SimpleProduct) },
-    { label: 'Grouped Product', value: String(ProductType.GroupedProduct) }
+    { label: 'Digital Product', value: String(ProductType.DigitalProduct) },
+    { label: 'Bundle Product', value: String(ProductType.BundleProduct) }
   ])
 
   const selectedProductType = computed<string>({

@@ -56,7 +56,7 @@
             color="primary"
             variant="solid"
             class="cursor-pointer"
-            @click="currentTab === 'general' ? onGeneralSubmit() : onSeoSubmit()"
+            @click="onSave"
           >
             Save
           </UButton>
@@ -82,6 +82,21 @@
           <ProductSeoTab v-model:state="seoState" />
         </UForm>
       </template>
+      <template #inventory>
+        <UForm
+          :schema="inventorySchema"
+          :state="inventoryState"
+          class="space-y-4 p-4 pb-8"
+          @submit="onInventorySubmit"
+        >
+          <ProductInventoryTab v-model:state="inventoryState" />
+        </UForm>
+      </template>
+      <template #mappings>
+        <div class="space-y-4 p-4 pb-8">
+          <ProductMappingsTab :product-id="generalState.Id" />
+        </div>
+      </template>
     </UTabs>
   </div>
 </template>
@@ -90,8 +105,10 @@
   import * as z from 'zod'
   import type { TabsItem } from '@nuxt/ui'
   import ProductService from '~/services/ProductService'
-  import { ProductType, type ProductDto, type UpsertProductInfoDto, type UpsertProductSEOInfoDto } from '~/types/catalog/Product'
+  import { LowStockActivity, ManageInventoryMethod, ProductType, type ProductDto, type UpsertProductInfoDto, type UpsertProductInventoryDto, type UpsertProductSEOInfoDto } from '~/types/catalog/Product'
   import ProductGeneralTab from './ProductGeneralTab.vue'
+  import ProductInventoryTab from './ProductInventoryTab.vue'
+  import ProductMappingsTab from './ProductMappingsTab.vue'
   import ProductSeoTab from './ProductSeoTab.vue'
 
   const props = defineProps<{
@@ -116,12 +133,7 @@
     BrandId: props.initialData?.BrandId,
     DisplayOrder: props.initialData?.DisplayOrder ?? 0,
     Published: props.initialData?.Published ?? true,
-    Pictures: [
-      {
-        PictureId: props.initialData?.Pictures?.[0]?.Id,
-        Url: props.initialData?.Pictures?.[0]?.Url
-      }
-    ]
+    Tags: props.initialData?.Tags ?? []
   })
 
   const seoState = reactive<UpsertProductSEOInfoDto>({
@@ -130,6 +142,42 @@
     MetaKeywords: props.initialData?.MetaKeywords,
     MetaDescription: props.initialData?.MetaDescription,
     MetaTitle: props.initialData?.MetaTitle
+  })
+
+  const normalizeManageInventoryMethod = (value?: number) => {
+    const allowed = [
+      ManageInventoryMethod.DontManageStock,
+      ManageInventoryMethod.ManageStock,
+      ManageInventoryMethod.ManageStockByAttributes
+    ]
+
+    return allowed.includes(value as ManageInventoryMethod)
+      ? (value as ManageInventoryMethod)
+      : ManageInventoryMethod.DontManageStock
+  }
+
+  const normalizeLowStockActivity = (value?: number) => {
+    const allowed = [
+      LowStockActivity.Nothing,
+      LowStockActivity.NotifyAdmin,
+      LowStockActivity.Unpublish,
+      LowStockActivity.MarkAsOutOfStock
+    ]
+    
+    return allowed.includes(value as LowStockActivity)
+      ? (value as LowStockActivity)
+      : LowStockActivity.Nothing
+  }
+
+  const inventoryState = reactive<UpsertProductInventoryDto>({
+    ProductId: props.initialData?.Id || '',
+    ManageInventoryMethod: normalizeManageInventoryMethod(props.initialData?.ManageInventoryMethod),
+    LowStockActivity: normalizeLowStockActivity(props.initialData?.LowStockActivity),
+    NotifyAdminForQuantityBelow: props.initialData?.NotifyAdminForQuantityBelow ?? 0,
+    StockQuantity: props.initialData?.StockQuantity ?? 0,
+    ReservedQuantity: props.initialData?.ReservedQuantity ?? 0,
+    OrderMinimumQuantity: props.initialData?.OrderMinimumQuantity ?? 0,
+    OrderMaximumQuantity: props.initialData?.OrderMaximumQuantity ?? 0
   })
 
   const items = ref<TabsItem[]>([
@@ -142,6 +190,16 @@
       label: 'SEO',
       slot: 'seo',
       value: 'seo'
+    },
+    {
+      label: 'Inventory',
+      slot: 'inventory',
+      value: 'inventory'
+    },
+    {
+      label: 'Mappings',
+      slot: 'mappings',
+      value: 'mappings'
     }
   ])
 
@@ -157,6 +215,24 @@
     SeName: z.string().min(1, 'SEO Name is required')
   })
 
+  const inventorySchema = z.object({
+    ManageInventoryMethod: z.coerce.number(),
+    LowStockActivity: z.coerce.number(),
+    NotifyAdminForQuantityBelow: z.coerce.number().min(0),
+    StockQuantity: z.coerce.number().min(0),
+    ReservedQuantity: z.coerce.number().min(0),
+    OrderMinimumQuantity: z.coerce.number().min(0),
+    OrderMaximumQuantity: z.coerce.number().min(0)
+  }).superRefine((data, ctx) => {
+    if (data.LowStockActivity === LowStockActivity.NotifyAdmin && data.NotifyAdminForQuantityBelow < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['NotifyAdminForQuantityBelow'],
+        message: 'Notify admin threshold must be at least 1'
+      })
+    }
+  })
+
   async function onGeneralSubmit() {
     try {
       const result = await ProductService.upsertProduct(generalState)
@@ -166,11 +242,13 @@
       if (!generalState.Id) {
         generalState.Id = result.Id
         seoState.Id = result.Id
+        inventoryState.ProductId = result.Id
         router.push(`/product/edit/${result.Id}`)
       }
       else {
         generalState.Id = result.Id
         seoState.Id = result.Id
+        inventoryState.ProductId = result.Id
       }
     }
     catch {
@@ -185,6 +263,39 @@
     }
     catch {
       toast.add({ title: 'Error', description: 'Failed to update SEO info', color: 'error' })
+    }
+  }
+
+  async function onInventorySubmit() {
+    if (!generalState.Id) {
+      toast.add({ title: 'Error', description: 'Save general information first', color: 'error' })
+      return
+    }
+
+    inventoryState.ProductId = generalState.Id
+
+    try {
+      await ProductService.updateProductInventory(inventoryState)
+      toast.add({ title: 'Success', description: 'Inventory updated successfully', color: 'success' })
+    }
+    catch {
+      toast.add({ title: 'Error', description: 'Failed to update inventory', color: 'error' })
+    }
+  }
+
+  const onSave = () => {
+    if (currentTab.value === 'general') {
+      onGeneralSubmit()
+      return
+    }
+
+    if (currentTab.value === 'seo') {
+      onSeoSubmit()
+      return
+    }
+
+    if (currentTab.value === 'inventory') {
+      onInventorySubmit()
     }
   }
 
