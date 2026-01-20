@@ -37,6 +37,16 @@ export type ProductAttributeMappingDto = {
   Values: ProductAttributeValueDto[]
 }
 
+export type UpsertProductAttributeValueDto = {
+  Id?: string
+  ProductId: string
+  MappingId: string
+  Name: string
+  DisplayOrder: number
+  ColorSquaresRgb?: string | null
+  ImageSquaresPictureId?: string | null
+}
+
 export type UpsertProductAttributeMappingDto = {
   ProductId: string
   ProductAttributeId: string

@@ -1,5 +1,6 @@
 import BaseService from './BaseService'
 import type { PagedList } from '~/types/common/PagedList'
+import type { PictureDto } from '~/types/common/Picture'
 import type { ProductCategoryDto, ProductDto, UpsertProductCategoryDto, UpsertProductInfoDto, UpsertProductInventoryDto, UpsertProductSEOInfoDto } from '~/types/catalog/Product'
 
 const resource = '/api/v1/admin/product'
@@ -17,6 +18,10 @@ class ProductService {
 
   async getProductById(id: string): Promise<ProductDto> {
     return await this.baseService.get<ProductDto>(`${resource}/${id}`)
+  }
+
+  async getProductPictures(id: string): Promise<PictureDto[]> {
+    return await this.baseService.get<PictureDto[]>(`${resource}/${id}/pictures`)
   }
 
   async upsertProduct(payload: UpsertProductInfoDto): Promise<ProductDto> {
