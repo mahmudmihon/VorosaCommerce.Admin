@@ -22,8 +22,8 @@ class BaseService {
     return await this.apiService<T>(endpoint, { method: 'PUT', body: data as JsonBody });
   }
 
-  async delete(endpoint: string): Promise<void> {
-    await this.apiService<unknown>(endpoint, { method: 'DELETE' });
+  async delete(endpoint: string, data?: unknown): Promise<void> {
+    await this.apiService<unknown>(endpoint, { method: 'DELETE', body: data as JsonBody });
   }
 }
 

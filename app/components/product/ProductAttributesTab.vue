@@ -573,9 +573,9 @@
             return h('div', { class: 'flex items-center gap-3' }, [
               canExpand
                 ? h(UButton, {
-                  icon: row.getIsExpanded() ? 'i-lucide-minus' : 'i-lucide-plus',
+                  icon: row.getIsExpanded() ? 'i-solar:minus-circle-bold-duotone' : 'i-solar:add-circle-bold-duotone',
                   color: 'neutral',
-                  variant: 'outline',
+                  variant: 'soft',
                   size: 'xs',
                   square: true,
                   class: 'cursor-pointer',
@@ -634,15 +634,12 @@
 
           if (original.groupControlType === AttributeControlType.ImageSquares) {
             const url = original.Picture?.Url
-            return h('div', { class: 'flex items-center gap-2' }, [
-              url
-                ? h('img', { src: url, alt: '', class: 'h-6 w-6 rounded border border-default object-cover' })
-                : null,
-              h(UBadge, { color: 'neutral', variant: 'subtle' }, () => 'Image')
-            ].filter(Boolean))
+            return url
+              ? h('img', { src: url, alt: '', class: 'h-10 w-10 rounded border border-default object-cover' })
+              : null
           }
 
-          return h(UBadge, { color: 'neutral', variant: 'subtle' }, () => 'Value')
+          return ''
         }
       },
       {
@@ -756,6 +753,21 @@
     }
   }
 
+  const hydrateValuePictures = (mappings: ProductAttributeMappingDto[]) => {
+    if (!productPictures.value.length) return mappings
+    const pictureMap = new Map(productPictures.value.map(picture => [picture.Id, picture]))
+    return mappings.map(mapping => ({
+      ...mapping,
+      Values: (mapping.Values || []).map(value => {
+        if (!value.ImageSquaresPictureId || value.Picture) return value
+        return {
+          ...value,
+          Picture: pictureMap.get(value.ImageSquaresPictureId) || null
+        }
+      })
+    }))
+  }
+
   const fetchAttributeMappings = async () => {
     if (!props.productId) {
       attributeMappings.value = []
@@ -764,9 +776,17 @@
 
     loading.value = true
     try {
-      attributeMappings.value = await ProductAttributeMappingService.getProductAttributeMappings({
+      let mappings = await ProductAttributeMappingService.getProductAttributeMappings({
         ProductId: props.productId
       })
+      const needsPictures = mappings.some(mapping =>
+        (mapping.Values || []).some(value => value.ImageSquaresPictureId && !value.Picture)
+      )
+      if (needsPictures && !productPictures.value.length) {
+        await fetchProductPictures()
+      }
+      mappings = hydrateValuePictures(mappings)
+      attributeMappings.value = mappings
     }
     catch {
       toast.add({ title: 'Error', description: 'Failed to load attribute mappings', color: 'error' })
@@ -825,14 +845,6 @@
     valueState.DisplayOrder = value.DisplayOrder
     valueState.ColorSquaresRgb = value.ColorSquaresRgb || (currentValueControlType.value === AttributeControlType.ColorSquares ? '#000000' : '')
     valueState.ImageSquaresPictureId = value.ImageSquaresPictureId || ''
-
-    // If it's an update, we might need the ID (not currently in Upsert DTO, assuming Add for now or need refactor for Edit)
-    // IMPORTANT: The current onValueSubmit and UpsertProductAttributeValueDto suggest "Upsert" but usually need an ID for update.
-    // Checking DTO... UpsertProductAttributeValueDto definition in file doesn't have ID.
-    // Usually backend handles "Name" uniqueness or we need to add ID to DTO.
-    // For now, let's assume we are just pre-filling for "Add" or backend handles upsert by Name?
-    // Wait, the user asked for "Edit". If the API is "AddProductAttributeValue", it might create a new one.
-    // Let's check ProductAttributeMappingService.
   }
 
   const openAddValueModal = (mapping: ProductAttributeMappingDto) => {
@@ -937,7 +949,7 @@
     if (!props.productId) return
     deleteMappingLoadingId.value = mappingId
     try {
-      await ProductAttributeMappingService.deleteProductAttributeMapping(mappingId)
+      await ProductAttributeMappingService.deleteProductAttributeMapping(mappingId, props.productId)
       toast.add({ title: 'Deleted', description: 'Attribute removed successfully', color: 'success' })
       await fetchAttributeMappings()
     }
@@ -953,7 +965,7 @@
     if (!props.productId) return
     deleteValueLoadingId.value = valueId
     try {
-      await ProductAttributeMappingService.deleteProductAttributeValue(mappingId, valueId)
+      await ProductAttributeMappingService.deleteProductAttributeValue(mappingId, valueId, props.productId)
       toast.add({ title: 'Deleted', description: 'Attribute value removed successfully', color: 'success' })
       await fetchAttributeMappings()
     }

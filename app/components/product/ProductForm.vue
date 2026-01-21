@@ -102,6 +102,14 @@
           <ProductAttributesTab :product-id="generalState.Id" />
         </div>
       </template>
+      <template #pictures>
+        <div class="space-y-4 p-4 pb-8">
+          <ProductPicturesTab v-if="generalState.Id" :product-id="generalState.Id" />
+          <div v-else class="text-center text-gray-500 py-8">
+            Please save the product first to add pictures.
+          </div>
+        </div>
+      </template>
     </UTabs>
   </div>
 </template>
@@ -114,6 +122,7 @@
   import ProductGeneralTab from './ProductGeneralTab.vue'
   import ProductInventoryTab from './ProductInventoryTab.vue'
   import ProductAttributesTab from './ProductAttributesTab.vue'
+  import ProductPicturesTab from './ProductPicturesTab.vue'
   import ProductMappingsTab from './ProductMappingsTab.vue'
   import ProductSeoTab from './ProductSeoTab.vue'
 
@@ -169,7 +178,7 @@
       LowStockActivity.Unpublish,
       LowStockActivity.MarkAsOutOfStock
     ]
-    
+
     return allowed.includes(value as LowStockActivity)
       ? (value as LowStockActivity)
       : LowStockActivity.Nothing
@@ -196,6 +205,11 @@
       label: 'SEO',
       slot: 'seo',
       value: 'seo'
+    },
+    {
+      label: 'Pictures',
+      slot: 'pictures',
+      value: 'pictures'
     },
     {
       label: 'Inventory',

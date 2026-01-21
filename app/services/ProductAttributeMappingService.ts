@@ -25,12 +25,19 @@ class ProductAttributeMappingService {
     return await this.baseService.post<ProductAttributeMappingDto[]>(`${resource}/${payload.MappingId}/values`, payload)
   }
 
-  async deleteProductAttributeValue(mappingId: string, id: string): Promise<void> {
-    await this.baseService.delete(`${resource}/${mappingId}/values/${id}`)
+  async deleteProductAttributeValue(mappingId: string, valueId: string, productId: string): Promise<void> {
+    await this.baseService.delete(`${resource}/${mappingId}/values/${valueId}`, {
+      ProductId: productId,
+      MappingId: mappingId,
+      ValueId: valueId
+    })
   }
 
-  async deleteProductAttributeMapping(id: string): Promise<void> {
-    await this.baseService.delete(`${resource}/${id}`)
+  async deleteProductAttributeMapping(mappingId: string, productId: string): Promise<void> {
+    await this.baseService.delete(`${resource}/${mappingId}`, {
+      ProductId: productId,
+      MappingId: mappingId
+    })
   }
 }
 

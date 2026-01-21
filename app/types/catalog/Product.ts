@@ -96,3 +96,10 @@ export type UpsertProductCategoryDto = {
   CategoryId: string
   DisplayOrder: number
 }
+
+export type UpdateProductPictureDto = {
+  ProductId: string
+  PictureId: string
+  DisplayOrder: number
+  IsDefault: boolean
+}

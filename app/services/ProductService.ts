@@ -1,7 +1,7 @@
 import BaseService from './BaseService'
 import type { PagedList } from '~/types/common/PagedList'
 import type { PictureDto } from '~/types/common/Picture'
-import type { ProductCategoryDto, ProductDto, UpsertProductCategoryDto, UpsertProductInfoDto, UpsertProductInventoryDto, UpsertProductSEOInfoDto } from '~/types/catalog/Product'
+import type { ProductCategoryDto, ProductDto, UpsertProductCategoryDto, UpsertProductInfoDto, UpsertProductInventoryDto, UpsertProductSEOInfoDto, UpdateProductPictureDto } from '~/types/catalog/Product'
 
 const resource = '/api/v1/admin/product'
 
@@ -22,6 +22,21 @@ class ProductService {
 
   async getProductPictures(id: string): Promise<PictureDto[]> {
     return await this.baseService.get<PictureDto[]>(`${resource}/${id}/pictures`)
+  }
+
+  async addProductPicture(id: string, payload: FormData): Promise<void> {
+    await this.baseService.post(`${resource}/${id}/pictures`, payload)
+  }
+
+  async updateProductPicture(id: string, pictureId: string, payload: UpdateProductPictureDto): Promise<void> {
+    await this.baseService.put(`${resource}/${id}/pictures/${pictureId}`, payload)
+  }
+
+  async deleteProductPicture(id: string, pictureId: string): Promise<void> {
+    await this.baseService.delete(`${resource}/${id}/pictures/${pictureId}`, {
+      ProductId: id,
+      PictureId: pictureId
+    })
   }
 
   async upsertProduct(payload: UpsertProductInfoDto): Promise<ProductDto> {
