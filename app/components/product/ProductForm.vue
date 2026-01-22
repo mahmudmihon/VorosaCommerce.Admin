@@ -1,67 +1,71 @@
 <template>
   <div class="flex flex-col gap-4 h-full overflow-auto">
+    <div class="sticky top-0 z-10 flex justify-end gap-3 bg-default py-2">
+      <UModal
+        v-if="generalState.Id"
+        v-model:open="deleteModalOpen"
+        title="Delete product"
+        description="This action cannot be undone."
+      >
+        <UTooltip text="Delete">
+          <UButton
+            icon="i-solar:trash-bin-2-bold-duotone"
+            color="error"
+            variant="soft"
+            square
+            size="md"
+            :loading="deleteLoading"
+            aria-label="Delete product"
+            class="cursor-pointer"
+          >
+            Delete
+          </UButton>
+        </UTooltip>
+
+        <template #body>
+          <div class="flex justify-end gap-2">
+            <UButton
+              label="Cancel"
+              color="neutral"
+              variant="subtle"
+              :disabled="deleteLoading"
+              class="cursor-pointer"
+              @click="deleteModalOpen = false"
+            />
+            <UButton
+              label="Delete"
+              color="error"
+              variant="solid"
+              :loading="deleteLoading"
+              class="cursor-pointer"
+              @click="onDelete"
+            />
+          </div>
+        </template>
+      </UModal>
+      <UButton
+        icon="solar:diskette-bold-duotone"
+        size="md"
+        color="primary"
+        variant="solid"
+        class="cursor-pointer"
+        @click="onSave"
+      >
+        Save
+      </UButton>
+    </div>
     <UTabs
       v-model="currentTab"
       :items="items"
-      variant="link"
-      :ui="{ list: 'sticky top-0 z-10 bg-default' }"
+      orientation="vertical"
+      variant="pill"
+      color="primary"
+      :ui="{
+        list: 'mt-4 mb-auto items-start',
+        trigger: 'w-full justify-start text-left',
+        label: 'text-left'
+      }"
     >
-      <template #list-trailing>
-        <div class="ml-auto flex items-center gap-3">
-          <UModal
-            v-if="generalState.Id"
-            v-model:open="deleteModalOpen"
-            title="Delete product"
-            description="This action cannot be undone."
-          >
-            <UTooltip text="Delete">
-              <UButton
-                icon="i-solar:trash-bin-2-bold-duotone"
-                color="error"
-                variant="soft"
-                square
-                size="md"
-                :loading="deleteLoading"
-                aria-label="Delete product"
-                class="cursor-pointer"
-              >
-                Delete
-              </UButton>
-            </UTooltip>
-
-            <template #body>
-              <div class="flex justify-end gap-2">
-                <UButton
-                  label="Cancel"
-                  color="neutral"
-                  variant="subtle"
-                  :disabled="deleteLoading"
-                  class="cursor-pointer"
-                  @click="deleteModalOpen = false"
-                />
-                <UButton
-                  label="Delete"
-                  color="error"
-                  variant="solid"
-                  :loading="deleteLoading"
-                  class="cursor-pointer"
-                  @click="onDelete"
-                />
-              </div>
-            </template>
-          </UModal>
-          <UButton
-            icon="solar:diskette-bold-duotone"
-            size="md"
-            color="primary"
-            variant="solid"
-            class="cursor-pointer"
-            @click="onSave"
-          >
-            Save
-          </UButton>
-        </div>
-      </template>
       <template #general>
         <UForm
           :schema="generalSchema"
@@ -82,6 +86,14 @@
           <ProductSeoTab v-model:state="seoState" />
         </UForm>
       </template>
+      <template #pictures>
+        <div class="space-y-4 p-4 pb-8">
+          <ProductPicturesTab v-if="generalState.Id" :product-id="generalState.Id" />
+          <div v-else class="text-center text-gray-500 py-8">
+            Please save the product first to add pictures.
+          </div>
+        </div>
+      </template>
       <template #inventory>
         <UForm
           :schema="inventorySchema"
@@ -100,14 +112,6 @@
       <template #attributes>
         <div class="space-y-4 p-4 pb-8">
           <ProductAttributesTab :product-id="generalState.Id" />
-        </div>
-      </template>
-      <template #pictures>
-        <div class="space-y-4 p-4 pb-8">
-          <ProductPicturesTab v-if="generalState.Id" :product-id="generalState.Id" />
-          <div v-else class="text-center text-gray-500 py-8">
-            Please save the product first to add pictures.
-          </div>
         </div>
       </template>
     </UTabs>

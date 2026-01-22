@@ -1,5 +1,5 @@
 import BaseService from './BaseService'
-import type { ProductAttributeMappingDto, UpsertProductAttributeMappingDto, UpsertProductAttributeValueDto } from '~/types/catalog/ProductAttribute'
+import type { ProductAttributeCombinationDto, ProductAttributeMappingDto, UpdateProductAttributeCombinationDto, UpsertProductAttributeMappingDto, UpsertProductAttributeValueDto } from '~/types/catalog/ProductAttribute'
 
 const resource = '/api/v1/admin/ProductAttributeMapping'
 
@@ -12,6 +12,10 @@ class ProductAttributeMappingService {
 
   async getProductAttributeMappings(params: Record<string, unknown>): Promise<ProductAttributeMappingDto[]> {
     return await this.baseService.get<ProductAttributeMappingDto[]>(resource, params)
+  }
+
+  async getCombinations(params: Record<string, unknown>): Promise<ProductAttributeCombinationDto[]> {
+    return await this.baseService.get<ProductAttributeCombinationDto[]>(`${resource}/combinations`, params)
   }
 
   async addProductAttributeMapping(payload: UpsertProductAttributeMappingDto): Promise<ProductAttributeMappingDto[]> {
@@ -38,6 +42,22 @@ class ProductAttributeMappingService {
       ProductId: productId,
       MappingId: mappingId
     })
+  }
+
+  async generateCombinations(payload: { ProductId: string }): Promise<void> {
+    await this.baseService.post(`${resource}/generate-combinations`, payload)
+  }
+
+  async clearCombinations(payload: { ProductId: string }): Promise<void> {
+    await this.baseService.delete(`${resource}/clear-combinations`, payload)
+  }
+
+  async updateCombination(payload: UpdateProductAttributeCombinationDto): Promise<void> {
+    await this.baseService.put(`${resource}/update-combination`, payload)
+  }
+
+  async deleteCombination(payload: { ProductId: string, Id: string }): Promise<void> {
+    await this.baseService.delete(`${resource}/delete-combination`, payload)
   }
 }
 

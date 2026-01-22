@@ -16,7 +16,7 @@
       <UButton
         icon="i-solar:add-circle-bold-duotone"
         color="primary"
-        variant="solid"
+        variant="soft"
         class="cursor-pointer"
         :disabled="!productId"
         @click="openAddModal"

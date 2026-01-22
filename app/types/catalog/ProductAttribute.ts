@@ -37,6 +37,20 @@ export type ProductAttributeMappingDto = {
   Values: ProductAttributeValueDto[]
 }
 
+export type ProductAttributeCombinationDto = {
+  Id: string
+  Attributes: string
+  StockQuantity: number
+  OverriddenPrice: number
+}
+
+export type UpdateProductAttributeCombinationDto = {
+  Id: string
+  ProductId: string
+  StockQuantity: number
+  OverriddenPrice: number
+}
+
 export type UpsertProductAttributeValueDto = {
   Id?: string
   ProductId: string

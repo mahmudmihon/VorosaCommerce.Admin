@@ -23,17 +23,23 @@
       class="mt-6"
     >
       <template #list-trailing>
-        <div class="ml-auto flex items-center gap-3">
-          <UButton
-            icon="i-solar:add-circle-bold-duotone"
-            color="primary"
-            variant="solid"
-            class="cursor-pointer"
-            :disabled="!productId"
-            @click="openModal"
+        <div
+          v-if="currentTab === 'attributes'"
+          class="ml-auto flex items-center gap-3"
+        >
+          <UDropdownMenu
+            :items="combinationsDropdownItems"
+            :content="{ align: 'end' }"
           >
-            Add Attribute
-          </UButton>
+            <UButton
+              icon="i-solar:menu-dots-bold-duotone"
+              color="success"
+              variant="soft"
+              class="cursor-pointer"
+              :disabled="!productId"
+              :loading="generateCombinationsLoading || clearCombinationsLoading"
+            />
+          </UDropdownMenu>
         </div>
       </template>
 
@@ -63,16 +69,16 @@
       <template #values>
         <div class="mt-4">
           <div
-            v-if="!valueTableData.length"
+            v-if="!combinationTableData.length"
             class="text-sm text-muted-foreground"
           >
-            No values available.
+            No combinations available.
           </div>
           <UTable
             v-else
-            :data="valueTableData"
-            :columns="valueColumns"
-            :loading="loading"
+            :data="combinationTableData"
+            :columns="combinationColumns"
+            :loading="combinationsLoading"
             class="mt-2"
             :ui="{
               base: 'table-fixed border-separate border-spacing-0',
@@ -304,6 +310,68 @@
       </UForm>
     </template>
   </UModal>
+
+  <UModal
+    v-model:open="combinationModalOpen"
+    title="Edit combination"
+    description="Update stock quantity and overridden price"
+  >
+    <template #body>
+      <UForm
+        :schema="combinationSchema"
+        :state="combinationState"
+        class="space-y-4"
+        @submit="onCombinationSubmit"
+      >
+        <UFormField
+          label="Stock Quantity"
+          name="StockQuantity"
+          required
+        >
+          <UInput
+            v-model="combinationState.StockQuantity"
+            size="xl"
+            type="number"
+            :min="0"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField
+          label="Overridden Price"
+          name="OverriddenPrice"
+        >
+          <UInput
+            v-model="combinationState.OverriddenPrice"
+            size="xl"
+            type="number"
+            :min="0"
+            step="0.01"
+            class="w-full"
+          />
+        </UFormField>
+
+        <div class="flex justify-end gap-2">
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="subtle"
+            class="cursor-pointer"
+            :disabled="combinationSubmitLoading"
+            @click="combinationModalOpen = false"
+          />
+          <UButton
+            label="Save"
+            color="primary"
+            variant="solid"
+            class="cursor-pointer"
+            :loading="combinationSubmitLoading"
+            type="submit"
+          />
+        </div>
+      </UForm>
+    </template>
+  </UModal>
 </template>
 
 <script setup lang="ts">
@@ -317,7 +385,7 @@
   import ProductService from '~/services/ProductService'
   import type { PagedList } from '~/types/common/PagedList'
   import type { PictureDto } from '~/types/common/Picture'
-  import { type ProductAttributeDto, AttributeControlType, type ProductAttributeMappingDto, type ProductAttributeValueDto, type UpsertProductAttributeMappingDto, type UpsertProductAttributeValueDto } from '~/types/catalog/ProductAttribute'
+  import { type ProductAttributeCombinationDto, type ProductAttributeDto, AttributeControlType, type ProductAttributeMappingDto, type UpdateProductAttributeCombinationDto, type UpsertProductAttributeMappingDto, type UpsertProductAttributeValueDto } from '~/types/catalog/ProductAttribute'
 
   const props = defineProps<{
     productId?: string
@@ -343,12 +411,8 @@
   }
 
   type TableRow = GroupedValueRow
-  type ValueTableRow = ProductAttributeValueDto & {
+  type CombinationTableRow = ProductAttributeCombinationDto & {
     id: string
-    attributeName: string
-    controlType: AttributeControlType
-    attributeDisplayOrder: number
-    mappingId: string
   }
 
   const UButton = resolveComponent('UButton')
@@ -362,18 +426,25 @@
   const submitLoading = ref(false)
   const valueModalOpen = ref(false)
   const valueSubmitLoading = ref(false)
+  const combinationModalOpen = ref(false)
+  const combinationSubmitLoading = ref(false)
   const valuePicturesLoading = ref(false)
+  const generateCombinationsLoading = ref(false)
+  const clearCombinationsLoading = ref(false)
+  const combinationsLoading = ref(false)
   const productPictures = ref<PictureDto[]>([])
   const deleteMappingLoadingId = ref<string | null>(null)
   const deleteValueLoadingId = ref<string | null>(null)
+  const deleteCombinationLoadingId = ref<string | null>(null)
   const grouping = ref<string[]>(['groupName'])
 
   const attributeOptions = ref<SelectOption[]>([])
   const attributeMappings = ref<ProductAttributeMappingDto[]>([])
+  const combinations = ref<ProductAttributeCombinationDto[]>([])
 
   const tabItems = ref<TabsItem[]>([
     { label: 'Attributes', slot: 'attributes', value: 'attributes' },
-    { label: 'Values', slot: 'values', value: 'values' }
+    { label: 'Combinations', slot: 'values', value: 'values' }
   ])
 
   const schema = z.object({
@@ -412,6 +483,22 @@
     DisplayOrder: 0,
     ColorSquaresRgb: '',
     ImageSquaresPictureId: ''
+  })
+
+  const combinationSchema = z.object({
+    Id: z.string().min(1, 'Combination is required'),
+    ProductId: z.string().min(1, 'Product is required'),
+    StockQuantity: z.coerce.number().min(0),
+    OverriddenPrice: z.coerce.number().min(0)
+  })
+
+  type CombinationSchema = z.output<typeof combinationSchema>
+
+  const combinationState = reactive<CombinationSchema>({
+    Id: '',
+    ProductId: '',
+    StockQuantity: 0,
+    OverriddenPrice: 0
   })
 
   const attributeControlOptions = computed<SelectOption[]>(() => [
@@ -501,17 +588,11 @@
     return rows
   })
 
-  const valueTableData = computed<ValueTableRow[]>(() => {
-    return attributeMappings.value.flatMap(mapping => {
-      return (mapping.Values || []).map(value => ({
-        ...value,
-        id: value.Id,
-        attributeName: mapping.ProductAttributeName,
-        controlType: mapping.AttributeControlType,
-        attributeDisplayOrder: mapping.DisplayOrder,
-        mappingId: mapping.Id
-      }))
-    })
+  const combinationTableData = computed<CombinationTableRow[]>(() => {
+    return combinations.value.map(combination => ({
+      ...combination,
+      id: combination.Id
+    }))
   })
 
   const mappingDropdownItems = (mappingId: string): DropdownMenuItem[][] => ([
@@ -559,6 +640,30 @@
       }
     ]
   ])
+
+  const combinationsDropdownItems = computed<DropdownMenuItem[][]>(() => ([
+    [
+      {
+        label: 'Add Attribute',
+        icon: 'i-solar:add-circle-bold-duotone',
+        disabled: !props.productId,
+        onSelect: () => openModal()
+      },
+      {
+        label: 'Generate Combinations',
+        icon: 'i-solar:scissors-square-bold-duotone',
+        disabled: !props.productId || generateCombinationsLoading.value || clearCombinationsLoading.value,
+        onSelect: () => onGenerateCombinations()
+      },
+      {
+        label: 'Clear Combinations',
+        icon: 'i-solar:trash-bin-2-bold-duotone',
+        color: 'error' as const,
+        disabled: !props.productId || generateCombinationsLoading.value || clearCombinationsLoading.value,
+        onSelect: () => onClearCombinations()
+      }
+    ]
+  ]))
 
   const columns = computed<TableColumn<TableRow>[]>(() => {
     return [
@@ -695,45 +800,46 @@
     ]
   })
 
-  const valueColumns = computed<TableColumn<ValueTableRow>[]>(() => {
+  const combinationColumns = computed<TableColumn<CombinationTableRow>[]>(() => {
     return [
       {
-        id: 'attributeName',
-        header: 'Attribute',
-        cell: ({ row }) => row.original.attributeName
+        id: 'attributes',
+        header: 'Attributes',
+        cell: ({ row }) => row.original.Attributes
       },
       {
-        id: 'valueName',
-        header: 'Value',
-        cell: ({ row }) => row.original.Name
+        id: 'stockQuantity',
+        header: 'Stock',
+        cell: ({ row }) => row.original.StockQuantity
       },
       {
-        id: 'controlType',
-        header: 'Control Type',
-        cell: ({ row }) => h(UBadge, { color: 'neutral', variant: 'subtle' }, () => attributeControlLabel(row.original.controlType))
+        id: 'overriddenPrice',
+        header: 'Overridden Price',
+        cell: ({ row }) => row.original.OverriddenPrice
       },
       {
-        id: 'displayOrder',
-        header: 'Display Order',
-        cell: ({ row }) => row.original.DisplayOrder
-      },
-      {
-        id: 'valueDetails',
+        id: 'actions',
         header: () => h('div', { class: 'w-full text-center' }, 'Actions'),
-        cell: ({ row }) => {
-          const mappingId = row.original.mappingId
-          return h('div', { class: 'flex justify-center' }, [
-            h(UDropdownMenu, { items: mappingDropdownItems(mappingId), content: { align: 'end' } }, () =>
-              h(UButton, {
-                icon: 'i-lucide-ellipsis-vertical',
-                color: 'neutral',
-                variant: 'ghost',
-                size: 'lg',
-                class: 'cursor-pointer'
-              })
-            )
+        cell: ({ row }) =>
+          h('div', { class: 'flex justify-center gap-2' }, [
+            h(UButton, {
+              icon: 'i-solar:pen-new-square-bold-duotone',
+              variant: 'ghost',
+              color: 'neutral',
+              class: 'cursor-pointer',
+              disabled: !props.productId || deleteCombinationLoadingId.value === row.original.Id,
+              onClick: () => onEditCombination(row.original)
+            }),
+            h(UButton, {
+              icon: 'i-solar:trash-bin-2-bold-duotone',
+              variant: 'ghost',
+              color: 'neutral',
+              class: 'cursor-pointer transition-colors hover:text-red-500 hover:bg-red-500/10',
+              disabled: !props.productId || deleteCombinationLoadingId.value === row.original.Id,
+              loading: deleteCombinationLoadingId.value === row.original.Id,
+              onClick: () => onDeleteCombination(row.original.Id)
+            })
           ])
-        }
       }
     ]
   })
@@ -793,6 +899,93 @@
     }
     finally {
       loading.value = false
+    }
+  }
+
+  const fetchCombinations = async () => {
+    if (!props.productId) {
+      combinations.value = []
+      return
+    }
+
+    combinationsLoading.value = true
+    try {
+      combinations.value = await ProductAttributeMappingService.getCombinations({
+        ProductId: props.productId
+      })
+    }
+    catch {
+      toast.add({ title: 'Error', description: 'Failed to load combinations', color: 'error' })
+    }
+    finally {
+      combinationsLoading.value = false
+    }
+  }
+
+  const onGenerateCombinations = async () => {
+    if (!props.productId) {
+      toast.add({ title: 'Error', description: 'Save general information first', color: 'error' })
+      return
+    }
+    generateCombinationsLoading.value = true
+    try {
+      await ProductAttributeMappingService.generateCombinations({ ProductId: props.productId })
+      await fetchCombinations()
+      await fetchAttributeMappings()
+      toast.add({ title: 'Success', description: 'Combinations generated successfully', color: 'success' })
+    }
+    catch {
+      toast.add({ title: 'Error', description: 'Failed to generate combinations', color: 'error' })
+    }
+    finally {
+      generateCombinationsLoading.value = false
+    }
+  }
+
+  const onClearCombinations = async () => {
+    if (!props.productId) {
+      toast.add({ title: 'Error', description: 'Save general information first', color: 'error' })
+      return
+    }
+    clearCombinationsLoading.value = true
+    try {
+      await ProductAttributeMappingService.clearCombinations({ ProductId: props.productId })
+      await fetchCombinations()
+      toast.add({ title: 'Success', description: 'Combinations cleared successfully', color: 'success' })
+    }
+    catch {
+      toast.add({ title: 'Error', description: 'Failed to clear combinations', color: 'error' })
+    }
+    finally {
+      clearCombinationsLoading.value = false
+    }
+  }
+
+  const onEditCombination = (combination: ProductAttributeCombinationDto) => {
+    if (!props.productId) {
+      toast.add({ title: 'Error', description: 'Save general information first', color: 'error' })
+      return
+    }
+    combinationState.Id = combination.Id
+    combinationState.ProductId = props.productId
+    combinationState.StockQuantity = combination.StockQuantity
+    combinationState.OverriddenPrice = combination.OverriddenPrice
+    combinationModalOpen.value = true
+  }
+
+  const onDeleteCombination = async (combinationId: string) => {
+    if (!props.productId) return
+    deleteCombinationLoadingId.value = combinationId
+    try {
+      await ProductAttributeMappingService.deleteCombination({ ProductId: props.productId, Id: combinationId })
+      await fetchCombinations()
+      toast.add({ title: 'Deleted', description: 'Combination removed successfully', color: 'success' })
+    }
+    catch {
+      toast.add({ title: 'Error', description: 'Failed to delete combination', color: 'error' })
+    }
+    finally {
+      deleteCombinationLoadingId.value = null
     }
   }
 
@@ -945,6 +1138,29 @@
     }
   }
 
+  const onCombinationSubmit = async (event: FormSubmitEvent<CombinationSchema>) => {
+    if (!props.productId) return
+    combinationSubmitLoading.value = true
+    try {
+      const payload: UpdateProductAttributeCombinationDto = {
+        Id: event.data.Id,
+        ProductId: event.data.ProductId,
+        StockQuantity: event.data.StockQuantity,
+        OverriddenPrice: event.data.OverriddenPrice
+      }
+      await ProductAttributeMappingService.updateCombination(payload)
+      await fetchCombinations()
+      toast.add({ title: 'Success', description: 'Combination updated successfully', color: 'success' })
+      combinationModalOpen.value = false
+    }
+    catch {
+      toast.add({ title: 'Error', description: 'Failed to update combination', color: 'error' })
+    }
+    finally {
+      combinationSubmitLoading.value = false
+    }
+  }
+
   const onDeleteMapping = async (mappingId: string) => {
     if (!props.productId) return
     deleteMappingLoadingId.value = mappingId
@@ -981,6 +1197,7 @@
     () => props.productId,
     () => {
       fetchAttributeMappings()
+      fetchCombinations()
     },
     { immediate: true }
   )
