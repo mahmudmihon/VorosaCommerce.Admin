@@ -44,8 +44,8 @@ const period = ref<Period>('daily')
             </UButton>
           </UTooltip>
 
-          <UDropdownMenu :items="items">
-            <UButton icon="i-lucide-plus" size="md" class="rounded-full" />
+          <UDropdownMenu :items="items" :ui="{ item: 'cursor-pointer' }" class="cursor-pointer">
+            <UButton icon="i-lucide-plus" size="md" class="rounded-full cursor-pointer" />
           </UDropdownMenu>
         </template>
       </UDashboardNavbar>

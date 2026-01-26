@@ -2,14 +2,19 @@
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Brands">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
-          <UDropdownMenu :items="headerActions">
+          <UDropdownMenu :items="headerActions" :ui="{ item: 'cursor-pointer' }" class="cursor-pointer">
             <UButton
               label="Actions"
               icon="i-solar:round-alt-arrow-down-line-duotone"
               trailing
               color="neutral"
               variant="soft"
+              class="cursor-pointer"
             />
           </UDropdownMenu>
         </template>
@@ -214,4 +219,3 @@ onMounted(() => {
   fetchBrands()
 })
 </script>
-

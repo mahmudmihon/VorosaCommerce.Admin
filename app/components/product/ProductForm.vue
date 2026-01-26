@@ -62,7 +62,7 @@
       color="primary"
       :ui="{
         list: 'mt-4 mb-auto items-start',
-        trigger: 'w-full justify-start text-left',
+        trigger: 'w-full justify-start text-left cursor-pointer',
         label: 'text-left'
       }"
     >
@@ -77,47 +77,96 @@
         </UForm>
       </template>
       <template #seo>
-        <UForm
-          :schema="seoSchema"
-          :state="seoState"
-          class="space-y-4 p-4 pb-8"
-          @submit="onSeoSubmit"
-        >
-          <ProductSeoTab v-model:state="seoState" />
-        </UForm>
+        <div class="space-y-4 p-4 pb-8">
+          <GenericAlert
+            v-if="!generalState.Id"
+            :title="unsavedAlertTitle"
+            :description="unsavedAlertDescription"
+            color="warning"
+            variant="soft"
+          />
+          <UForm
+            v-else
+            :schema="seoSchema"
+            :state="seoState"
+            class="space-y-4"
+            @submit="onSeoSubmit"
+          >
+            <ProductSeoTab v-model:state="seoState" />
+          </UForm>
+        </div>
       </template>
       <template #pictures>
         <div class="space-y-4 p-4 pb-8">
           <ProductPicturesTab v-if="generalState.Id" :product-id="generalState.Id" />
-          <div v-else class="text-center text-gray-500 py-8">
-            Please save the product first to add pictures.
-          </div>
+          <GenericAlert
+            v-else
+            :title="unsavedAlertTitle"
+            :description="unsavedAlertDescription"
+            color="warning"
+            variant="soft"
+          />
         </div>
       </template>
       <template #inventory>
-        <UForm
-          :schema="inventorySchema"
-          :state="inventoryState"
-          class="space-y-4 p-4 pb-8"
-          @submit="onInventorySubmit"
-        >
-          <ProductInventoryTab v-model:state="inventoryState" />
-        </UForm>
+        <div class="space-y-4 p-4 pb-8">
+          <GenericAlert
+            v-if="!generalState.Id"
+            :title="unsavedAlertTitle"
+            :description="unsavedAlertDescription"
+            color="warning"
+            variant="soft"
+          />
+          <UForm
+            v-else
+            :schema="inventorySchema"
+            :state="inventoryState"
+            class="space-y-4"
+            @submit="onInventorySubmit"
+          >
+            <ProductInventoryTab v-model:state="inventoryState" />
+          </UForm>
+        </div>
       </template>
       <template #mappings>
         <div class="space-y-4 p-4 pb-8">
-          <ProductMappingsTab :product-id="generalState.Id" />
+          <GenericAlert
+            v-if="!generalState.Id"
+            :title="unsavedAlertTitle"
+            :description="unsavedAlertDescription"
+            color="warning"
+            variant="soft"
+          />
+          <ProductMappingsTab v-else :product-id="generalState.Id" />
         </div>
       </template>
       <template #attributes>
         <div class="space-y-4 p-4 pb-8">
-          <ProductAttributesTab :product-id="generalState.Id" />
+          <GenericAlert
+            v-if="!generalState.Id"
+            :title="unsavedAlertTitle"
+            :description="unsavedAlertDescription"
+            color="warning"
+            variant="soft"
+          />
+          <ProductAttributesTab v-else :product-id="generalState.Id" />
+        </div>
+      </template>
+      <template #specifications>
+        <div class="space-y-4 p-4 pb-8">
+          <GenericAlert
+            v-if="!generalState.Id"
+            :title="unsavedAlertTitle"
+            :description="unsavedAlertDescription"
+            color="warning"
+            variant="soft"
+          />
+          <ProductSpecificationAttributesTab v-else :product-id="generalState.Id" />
         </div>
       </template>
     </UTabs>
   </div>
 </template>
-
 <script setup lang="ts">
   import * as z from 'zod'
   import type { TabsItem } from '@nuxt/ui'
@@ -129,6 +178,8 @@
   import ProductPicturesTab from './ProductPicturesTab.vue'
   import ProductMappingsTab from './ProductMappingsTab.vue'
   import ProductSeoTab from './ProductSeoTab.vue'
+  import ProductSpecificationAttributesTab from './ProductSpecificationAttributesTab.vue'
+  import GenericAlert from '~/components/common/GenericAlert.vue'
 
   const props = defineProps<{
     initialData?: ProductDto
@@ -139,6 +190,8 @@
   const currentTab = ref('general')
   const deleteModalOpen = ref(false)
   const deleteLoading = ref(false)
+  const unsavedAlertTitle = 'Save general information first'
+  const unsavedAlertDescription = 'Save the product general information before adding details in other tabs.'
 
   const generalState = reactive<UpsertProductInfoDto>({
     Id: props.initialData?.Id,
@@ -229,6 +282,11 @@
       label: 'Product Attributes',
       slot: 'attributes',
       value: 'attributes'
+    },
+    {
+      label: 'Specification Attributes',
+      slot: 'specifications',
+      value: 'specifications'
     }
   ])
 

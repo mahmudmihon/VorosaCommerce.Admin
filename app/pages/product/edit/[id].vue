@@ -2,6 +2,10 @@
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Edit Product">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
           <UButton
             label="Back"

@@ -12,6 +12,10 @@ const { data: category, status } = await useAsyncData(`category-${id}`, () => Ca
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Edit Category">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
           <UButton
             label="Back"

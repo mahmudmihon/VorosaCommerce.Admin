@@ -71,11 +71,12 @@ function onSubmit() {
           <UButton icon="i-lucide-reply" color="neutral" variant="ghost" />
         </UTooltip>
 
-        <UDropdownMenu :items="dropdownItems">
+        <UDropdownMenu :items="dropdownItems" :ui="{ item: 'cursor-pointer' }" class="cursor-pointer">
           <UButton
             icon="i-lucide-ellipsis-vertical"
             color="neutral"
             variant="ghost"
+            class="cursor-pointer"
           />
         </UDropdownMenu>
       </template>

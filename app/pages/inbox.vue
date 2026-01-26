@@ -69,6 +69,7 @@ const isMobile = breakpoints.smaller('lg')
           :items="tabItems"
           :content="false"
           size="xs"
+          :ui="{ trigger: 'cursor-pointer' }"
         />
       </template>
     </UDashboardNavbar>

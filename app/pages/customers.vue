@@ -276,12 +276,15 @@ const pagination = ref({
                 }))
             "
             :content="{ align: 'end' }"
+            :ui="{ item: 'cursor-pointer' }"
+            class="cursor-pointer"
           >
             <UButton
               label="Display"
               color="neutral"
               variant="outline"
               trailing-icon="i-lucide-settings-2"
+              class="cursor-pointer"
             />
           </UDropdownMenu>
         </div>

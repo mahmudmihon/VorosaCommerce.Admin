@@ -50,7 +50,12 @@
       </template>
       <template #actions-cell="{ row }">
         <div class="flex justify-center">
-          <UDropdownMenu :items="actions(row.original)" :content="{ align: 'end' }">
+          <UDropdownMenu
+            :items="actions(row.original)"
+            :content="{ align: 'end' }"
+            :ui="{ item: 'cursor-pointer' }"
+            class="cursor-pointer"
+          >
             <UButton
               icon="i-lucide-ellipsis-vertical"
               color="neutral"
@@ -226,7 +231,7 @@ const onSubmit = async () => {
   submitting.value = true
   try {
     if (editingId.value) {
-      await ProductService.updateProductPicture(props.productId, editingId.value, {
+      await ProductService.updateProductPicture({
         ProductId: props.productId,
         PictureId: editingId.value,
         DisplayOrder: formState.DisplayOrder,
@@ -243,7 +248,7 @@ const onSubmit = async () => {
       formData.append('DisplayOrder', formState.DisplayOrder.toString())
       formData.append('IsDefault', formState.IsDefault.toString())
 
-      await ProductService.addProductPicture(props.productId, formData)
+      await ProductService.addProductPicture(formData)
       toast.add({ title: 'Success', description: 'Picture added successfully', color: 'success' })
     }
     isModalOpen.value = false

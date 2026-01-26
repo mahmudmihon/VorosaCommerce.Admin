@@ -2,6 +2,10 @@
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Create Category">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
           <UButton
             label="Back"

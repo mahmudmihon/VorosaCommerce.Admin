@@ -21,6 +21,7 @@
       :items="tabItems"
       variant="link"
       class="mt-6"
+      :ui="{ trigger: 'cursor-pointer' }"
     >
       <template #list-trailing>
         <div
@@ -30,6 +31,8 @@
           <UDropdownMenu
             :items="combinationsDropdownItems"
             :content="{ align: 'end' }"
+            :ui="{ item: 'cursor-pointer' }"
+            class="cursor-pointer"
           >
             <UButton
               icon="i-solar:menu-dots-bold-duotone"
@@ -769,7 +772,7 @@
             const mappingId = (row.subRows[0]?.original as GroupedValueRow)?.groupMappingId
             if (!mappingId) return null
             return h('div', { class: 'flex justify-center' }, [
-              h(UDropdownMenu, { items: mappingDropdownItems(mappingId), content: { align: 'end' } }, () =>
+              h(UDropdownMenu, { items: mappingDropdownItems(mappingId), content: { align: 'end' }, ui: { item: 'cursor-pointer' }, class: 'cursor-pointer' }, () =>
                 h(UButton, {
                   icon: 'i-solar:menu-dots-bold-duotone',
                   color: 'neutral',
@@ -785,7 +788,7 @@
           if (original.rowType === 'placeholder') return null
 
           return h('div', { class: 'flex justify-center' }, [
-            h(UDropdownMenu, { items: valueDropdownItems(original.id, original.groupMappingId), content: { align: 'end' } }, () =>
+            h(UDropdownMenu, { items: valueDropdownItems(original.id, original.groupMappingId), content: { align: 'end' }, ui: { item: 'cursor-pointer' }, class: 'cursor-pointer' }, () =>
               h(UButton, {
                 icon: 'i-solar:menu-dots-bold-duotone',
                 color: 'neutral',

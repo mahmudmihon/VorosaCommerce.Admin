@@ -2,6 +2,7 @@ import BaseService from './BaseService'
 import type { PagedList } from '~/types/common/PagedList'
 import type { PictureDto } from '~/types/common/Picture'
 import type { ProductCategoryDto, ProductDto, UpsertProductCategoryDto, UpsertProductInfoDto, UpsertProductInventoryDto, UpsertProductSEOInfoDto, UpdateProductPictureDto } from '~/types/catalog/Product'
+import type { DeleteProductSpecificationAttributeDto, ProductSpecificationAttributeDto, UpdateProductSpecificationAttributeDto, UpsertProductSpecificationAttributeDto } from '~/types/catalog/ProductSpecificationAttribute'
 
 const resource = '/api/v1/admin/product'
 
@@ -21,19 +22,19 @@ class ProductService {
   }
 
   async getProductPictures(id: string): Promise<PictureDto[]> {
-    return await this.baseService.get<PictureDto[]>(`${resource}/${id}/pictures`)
+    return await this.baseService.get<PictureDto[]>(`${resource}/picture/list?ProductId=${id}`)
   }
 
-  async addProductPicture(id: string, payload: FormData): Promise<void> {
-    await this.baseService.post(`${resource}/${id}/pictures`, payload)
+  async addProductPicture(payload: FormData): Promise<void> {
+    await this.baseService.post(`${resource}/picture`, payload)
   }
 
-  async updateProductPicture(id: string, pictureId: string, payload: UpdateProductPictureDto): Promise<void> {
-    await this.baseService.put(`${resource}/${id}/pictures/${pictureId}`, payload)
+  async updateProductPicture(payload: UpdateProductPictureDto): Promise<void> {
+    await this.baseService.put(`${resource}/picture`, payload)
   }
 
   async deleteProductPicture(id: string, pictureId: string): Promise<void> {
-    await this.baseService.delete(`${resource}/${id}/pictures/${pictureId}`, {
+    await this.baseService.delete(`${resource}/picture`, {
       ProductId: id,
       PictureId: pictureId
     })
@@ -52,15 +53,34 @@ class ProductService {
   }
 
   async getProductCategories(id: string): Promise<ProductCategoryDto[]> {
-    return await this.baseService.get<ProductCategoryDto[]>(`${resource}/${id}/categories`)
+    return await this.baseService.get<ProductCategoryDto[]>(`${resource}/category/list?ProductId=${id}`)
   }
 
-  async addProductCategory(id: string, payload: UpsertProductCategoryDto): Promise<void> {
-    await this.baseService.post(`${resource}/${id}/categories`, payload)
+  async addProductCategory(payload: UpsertProductCategoryDto): Promise<void> {
+    await this.baseService.post(`${resource}/category`, payload)
   }
 
   async deleteProductCategory(id: string, categoryId: string): Promise<void> {
-    await this.baseService.delete(`${resource}/${id}/categories/${categoryId}`)
+    await this.baseService.delete(`${resource}/category`, {
+      ProductId: id,
+      CategoryId: categoryId
+    })
+  }
+
+  async getProductSpecificationAttributes(productId: string): Promise<ProductSpecificationAttributeDto[]> {
+    return await this.baseService.get<ProductSpecificationAttributeDto[]>(`${resource}/specification-attribute/list?ProductId=${productId}`)
+  }
+
+  async addProductSpecificationAttribute(payload: UpsertProductSpecificationAttributeDto): Promise<ProductSpecificationAttributeDto[]> {
+    return await this.baseService.post<ProductSpecificationAttributeDto[]>(`${resource}/specification-attribute`, payload)
+  }
+
+  async updateProductSpecificationAttribute(payload: UpdateProductSpecificationAttributeDto): Promise<ProductSpecificationAttributeDto[]> {
+    return await this.baseService.put<ProductSpecificationAttributeDto[]>(`${resource}/specification-attribute`, payload)
+  }
+
+  async deleteProductSpecificationAttribute(payload: DeleteProductSpecificationAttributeDto): Promise<ProductSpecificationAttributeDto[]> {
+    return await this.baseService.delete<ProductSpecificationAttributeDto[]>(`${resource}/specification-attribute`, payload)
   }
 
   async deleteProduct(id: string): Promise<void> {

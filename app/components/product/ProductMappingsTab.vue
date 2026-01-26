@@ -228,7 +228,7 @@
         CategoryId: event.data.CategoryId,
         DisplayOrder: event.data.DisplayOrder
       }
-      await ProductService.addProductCategory(props.productId, payload)
+      await ProductService.addProductCategory(payload)
       toast.add({ title: 'Success', description: 'Category mapped successfully', color: 'success' })
       modalOpen.value = false
       await fetchProductCategories()

@@ -2,14 +2,24 @@
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Products">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
-          <UDropdownMenu :items="headerActions" :content="{ align: 'end' }">
+          <UDropdownMenu
+            :items="headerActions"
+            :content="{ align: 'end' }"
+            :ui="{ item: 'cursor-pointer' }"
+            class="cursor-pointer"
+          >
             <UButton
               label="Actions"
               icon="i-solar:round-alt-arrow-down-line-duotone"
               trailing
               color="neutral"
               variant="soft"
+              class="cursor-pointer"
             />
           </UDropdownMenu>
         </template>

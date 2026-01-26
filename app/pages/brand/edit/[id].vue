@@ -12,6 +12,10 @@ const { data: brand, status } = await useAsyncData(`brand-${id}`, () => BrandSer
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Edit Brand">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
           <UButton
             label="Back"

@@ -4,7 +4,7 @@
       v-model="currentTab"
       :items="items"
       variant="link"
-      :ui="{ list: 'sticky top-0 z-10 bg-default' }"
+      :ui="{ list: 'sticky top-0 z-10 bg-default', trigger: 'cursor-pointer' }"
     >
       <template #list-trailing>
         <div class="ml-auto flex items-center gap-3">

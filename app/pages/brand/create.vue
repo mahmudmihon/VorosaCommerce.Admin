@@ -2,6 +2,10 @@
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Create Brand">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+
         <template #right>
           <UButton
             label="Back"
@@ -22,4 +26,3 @@
 <script setup lang="ts">
 import BrandForm from '~/components/brand/BrandForm.vue'
 </script>
-

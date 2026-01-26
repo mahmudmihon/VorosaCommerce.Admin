@@ -47,11 +47,17 @@ const items = [{
           :ui="{ value: 'capitalize', item: 'capitalize' }"
         />
 
-        <UDropdownMenu :items="items" :content="{ align: 'end' }">
+        <UDropdownMenu
+          :items="items"
+          :content="{ align: 'end' }"
+          :ui="{ item: 'cursor-pointer' }"
+          class="cursor-pointer"
+        >
           <UButton
             icon="i-lucide-ellipsis-vertical"
             color="neutral"
             variant="ghost"
+            class="cursor-pointer"
           />
         </UDropdownMenu>
       </div>
