@@ -1,7 +1,7 @@
 import BaseService from './BaseService'
 import type { PagedList } from '~/types/common/PagedList'
 import type { PictureDto } from '~/types/common/Picture'
-import type { ProductCategoryDto, ProductDto, UpsertProductCategoryDto, UpsertProductInfoDto, UpsertProductInventoryDto, UpsertProductSEOInfoDto, UpdateProductPictureDto } from '~/types/catalog/Product'
+import type { CopyProductDto, ProductCategoryDto, ProductDto, UpsertProductCategoryDto, UpsertProductInfoDto, UpsertProductInventoryDto, UpsertProductSEOInfoDto, UpdateProductPictureDto } from '~/types/catalog/Product'
 import type { DeleteProductSpecificationAttributeDto, ProductSpecificationAttributeDto, UpdateProductSpecificationAttributeDto, UpsertProductSpecificationAttributeDto } from '~/types/catalog/ProductSpecificationAttribute'
 
 const resource = '/api/v1/admin/product'
@@ -85,6 +85,10 @@ class ProductService {
 
   async deleteProduct(id: string): Promise<void> {
     await this.baseService.delete(`${resource}/${id}`)
+  }
+
+  async copyProduct(payload: CopyProductDto): Promise<string> {
+    return await this.baseService.post<string>(`${resource}/copy`, payload)
   }
 }
 

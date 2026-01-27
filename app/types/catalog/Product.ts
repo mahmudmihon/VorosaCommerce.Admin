@@ -85,6 +85,13 @@ export type UpsertProductInventoryDto = {
   OrderMaximumQuantity: number
 }
 
+export type CopyProductDto = {
+  ProductId: string
+  Name?: string | null
+  Published: boolean
+  CopyImages: boolean
+}
+
 export type ProductCategoryDto = {
   CategoryId: string
   CategoryName: string

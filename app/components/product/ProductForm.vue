@@ -1,6 +1,83 @@
 <template>
   <div class="flex flex-col gap-4 h-full overflow-auto">
     <div class="sticky top-0 z-10 flex justify-end gap-3 bg-default py-2">
+      <UTooltip v-if="generalState.Id" text="Copy">
+        <UButton
+          icon="i-solar:copy-bold-duotone"
+          color="secondary"
+          variant="soft"
+          size="md"
+          :loading="copyLoading"
+          class="cursor-pointer"
+          @click="openCopyModal"
+        >
+          Copy
+        </UButton>
+      </UTooltip>
+      <UModal
+        v-if="generalState.Id"
+        v-model:open="copyModalOpen"
+        title="Copy product"
+        description="Create a new product from this one."
+      >
+        <template #body>
+          <UForm
+            :schema="copySchema"
+            :state="copyState"
+            class="space-y-4"
+            @submit="onCopy"
+          >
+            <UFormField
+              label="New product name"
+              name="Name"
+            >
+              <UInput
+                v-model="copyState.Name"
+                size="xl"
+                placeholder="Optional"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField
+              name="Published"
+            >
+              <UCheckbox
+                v-model="copyState.Published"
+                label="Published"
+              />
+            </UFormField>
+
+            <UFormField
+              name="CopyImages"
+            >
+              <UCheckbox
+                v-model="copyState.CopyImages"
+                label="Copy images"
+              />
+            </UFormField>
+
+            <div class="flex justify-end gap-2">
+              <UButton
+                label="Cancel"
+                color="neutral"
+                variant="subtle"
+                :disabled="copyLoading"
+                class="cursor-pointer"
+                @click="copyModalOpen = false"
+              />
+              <UButton
+                label="Copy product"
+                color="primary"
+                variant="solid"
+                :loading="copyLoading"
+                class="cursor-pointer"
+                type="submit"
+              />
+            </div>
+          </UForm>
+        </template>
+      </UModal>
       <UModal
         v-if="generalState.Id"
         v-model:open="deleteModalOpen"
@@ -169,9 +246,9 @@
 </template>
 <script setup lang="ts">
   import * as z from 'zod'
-  import type { TabsItem } from '@nuxt/ui'
+  import type { FormSubmitEvent, TabsItem } from '@nuxt/ui'
   import ProductService from '~/services/ProductService'
-  import { LowStockActivity, ManageInventoryMethod, ProductType, type ProductDto, type UpsertProductInfoDto, type UpsertProductInventoryDto, type UpsertProductSEOInfoDto } from '~/types/catalog/Product'
+  import { type CopyProductDto, LowStockActivity, ManageInventoryMethod, ProductType, type ProductDto, type UpsertProductInfoDto, type UpsertProductInventoryDto, type UpsertProductSEOInfoDto } from '~/types/catalog/Product'
   import ProductGeneralTab from './ProductGeneralTab.vue'
   import ProductInventoryTab from './ProductInventoryTab.vue'
   import ProductAttributesTab from './ProductAttributesTab.vue'
@@ -190,6 +267,8 @@
   const currentTab = ref('general')
   const deleteModalOpen = ref(false)
   const deleteLoading = ref(false)
+  const copyModalOpen = ref(false)
+  const copyLoading = ref(false)
   const unsavedAlertTitle = 'Save general information first'
   const unsavedAlertDescription = 'Save the product general information before adding details in other tabs.'
 
@@ -320,6 +399,22 @@
     }
   })
 
+  const copySchema = z.object({
+    ProductId: z.string().min(1, 'Product is required'),
+    Name: z.string().optional(),
+    Published: z.boolean(),
+    CopyImages: z.boolean()
+  })
+
+  type CopySchema = z.output<typeof copySchema>
+
+  const copyState = reactive<CopySchema>({
+    ProductId: '',
+    Name: '',
+    Published: true,
+    CopyImages: true
+  })
+
   async function onGeneralSubmit() {
     try {
       const result = await ProductService.upsertProduct(generalState)
@@ -401,6 +496,44 @@
     }
     finally {
       deleteLoading.value = false
+    }
+  }
+
+  const openCopyModal = () => {
+    if (!generalState.Id) {
+      toast.add({ title: 'Error', description: 'Save general information first', color: 'error' })
+      return
+    }
+    copyState.ProductId = generalState.Id
+    copyState.Name = ''
+    copyState.Published = generalState.Published ?? true
+    copyState.CopyImages = true
+    copyModalOpen.value = true
+  }
+
+  async function onCopy(event: FormSubmitEvent<CopySchema>) {
+    if (!generalState.Id) {
+      toast.add({ title: 'Error', description: 'Save general information first', color: 'error' })
+      return
+    }
+    copyLoading.value = true
+    try {
+      const payload: CopyProductDto = {
+        ProductId: event.data.ProductId,
+        Name: event.data.Name?.trim() || undefined,
+        Published: event.data.Published,
+        CopyImages: event.data.CopyImages
+      }
+      const result = await ProductService.copyProduct(payload)
+      toast.add({ title: 'Success', description: 'Product copied successfully', color: 'success' })
+      copyModalOpen.value = false
+      router.push(`/product/edit/${result}`)
+    }
+    catch {
+      toast.add({ title: 'Error', description: 'Failed to copy product', color: 'error' })
+    }
+    finally {
+      copyLoading.value = false
     }
   }
 </script>
