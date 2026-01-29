@@ -21,7 +21,7 @@
           orientation="vertical"
           tooltip
           popover
-          :ui="{ link: 'py-2 font-semibold' }"
+          :ui="{ link: 'py-2 font-semibold cursor-pointer', item: 'cursor-pointer' }"
           class="cursor-pointer"
         />
 
@@ -55,12 +55,35 @@
 
   const { sitemap, fetchSitemap } = useSitemap()
 
-  const { loggedIn } = useUserSession()
+  const { loggedIn, session } = useUserSession()
 
   const route = useRoute()
 
-  watch(loggedIn, async (isLoggedIn) => {
-    if (!isLoggedIn || sitemap.value.Nodes.length) return
+  const userId = computed(() => session.value?.user?.userId)
+  const rbacVersion = computed(() => session.value?.user?.rbacVersion)
+
+  const resetSitemap = () => {
+    sitemap.value = {
+      UserId: '',
+      RBACVersion: 0,
+      Nodes: [],
+      Permissions: []
+    }
+  }
+
+  watch([loggedIn, userId, rbacVersion], async ([isLoggedIn, currentUserId, currentRbacVersion]) => {
+    if (!isLoggedIn) {
+      resetSitemap()
+      return
+    }
+
+    const userChanged = currentUserId && currentUserId !== sitemap.value.UserId
+    const rbacChanged = typeof currentRbacVersion === 'number' && currentRbacVersion !== sitemap.value.RBACVersion
+    const needsFetch = !sitemap.value.Nodes.length || userChanged || rbacChanged
+
+    if (!needsFetch) return
+
+    resetSitemap()
     await fetchSitemap()
   }, { immediate: true })
 

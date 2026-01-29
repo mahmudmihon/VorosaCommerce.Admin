@@ -1,9 +1,9 @@
 <template>
   <ClientOnly>
     <Editor
+      :id="id"
       :key="colorMode.value"
       :model-value="modelValue"
-      :id="id"
       license-key="gpl"
       tinymce-script-src="/tinymce/tinymce.min.js"
       :init="config"

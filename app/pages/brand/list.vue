@@ -7,13 +7,17 @@
         </template>
 
         <template #right>
-          <UDropdownMenu :items="headerActions" :ui="{ item: 'cursor-pointer' }" class="cursor-pointer">
+          <UDropdownMenu
+            v-if="hasHeaderActions"
+            :items="headerActions"
+            :ui="{ item: 'cursor-pointer' }"
+            class="cursor-pointer"
+          >
             <UButton
-              label="Actions"
-              icon="i-solar:round-alt-arrow-down-line-duotone"
-              trailing
-              color="neutral"
-              variant="soft"
+              icon="i-solar:menu-dots-bold-duotone"
+              size="md"
+              color="success"
+              variant="solid"
               class="cursor-pointer"
             />
           </UDropdownMenu>
@@ -138,6 +142,10 @@ const headerActions = computed<DropdownMenuItem[][]>(() => {
   }
 
   return [actions]
+})
+
+const hasHeaderActions = computed(() => {
+  return headerActions.value.some(group => group.length > 0)
 })
 
 const columns = computed<TableColumn<TableRow>[]>(() => {

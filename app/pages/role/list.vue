@@ -7,13 +7,17 @@
         </template>
 
         <template #right>
-          <UDropdownMenu :items="headerActions" :ui="{ item: 'cursor-pointer' }" class="cursor-pointer">
+          <UDropdownMenu
+            v-if="hasHeaderActions"
+            :items="headerActions"
+            :ui="{ item: 'cursor-pointer' }"
+            class="cursor-pointer"
+          >
             <UButton
-              label="Actions"
-              icon="i-solar:round-alt-arrow-down-line-duotone"
-              trailing
-              color="neutral"
-              variant="soft"
+              icon="i-solar:menu-dots-bold-duotone"
+              size="md"
+              color="success"
+              variant="solid"
               class="cursor-pointer"
             />
           </UDropdownMenu>
@@ -57,7 +61,7 @@
         <template #actions-cell="{ row }">
           <div class="flex items-center gap-2">
             <UButton
-              v-if="canEdit && !isSystemRole(row.original)"
+              v-if="canEdit && !row.original.IsSystemRole"
               icon="i-solar:pen-new-square-bold-duotone"
               variant="ghost"
               color="neutral"
@@ -143,6 +147,10 @@
     return [actions]
   })
 
+  const hasHeaderActions = computed(() => {
+    return headerActions.value.some(group => group.length > 0)
+  })
+
   const columns = computed<TableColumn<TableRow>[]>(() => {
     const cols: TableColumn<TableRow>[] = [
       {
@@ -164,10 +172,6 @@
 
     return cols
   })
-
-  const isSystemRole = (role: RoleDto): boolean => {
-    return typeof role.SystemName === 'string' && role.SystemName.trim().length > 0
-  }
 
   const loading = ref(false)
   const data = ref<PagedList<RoleDto> | null>(null)
