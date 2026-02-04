@@ -22,6 +22,14 @@ export enum DiscountEntityType {
   Customer = 40
 }
 
+export enum DiscountRuleType {
+  AssignToSpecificCustomer = 10,
+  HasAllProducts = 20,
+  HasOneofAnyProducts = 30,
+  SpentSpecificAmount = 40,
+  SubtotalAmountInCart = 50
+}
+
 export type DiscountDto = BaseEntity & {
   DiscountType: DiscountType
   Name: string

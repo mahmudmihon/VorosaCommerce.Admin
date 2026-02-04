@@ -72,6 +72,9 @@
           <DiscountGeneralTab v-model:state="generalState" />
         </UForm>
       </template>
+      <template #requirements>
+        <DiscountRequirementsTab :discount-id="generalState.Id" />
+      </template>
       <template #assign-products>
         <DiscountAssignProductsTab :discount-id="generalState.Id" />
       </template>
@@ -84,10 +87,11 @@
 
 <script setup lang="ts">
   import * as z from 'zod'
-  import type { TabsItem } from '@nuxt/ui'
+  import type { TabsItem } from '#ui/types'
   import DiscountService from '~/services/DiscountService'
   import { DiscountLimitationType, DiscountType, type DiscountDto, type UpsertDiscountDto } from '~/types/catalog/Discount'
   import DiscountGeneralTab from './DiscountGeneralTab.vue'
+  import DiscountRequirementsTab from './DiscountRequirementsTab.vue'
   import DiscountAssignProductsTab from './DiscountAssignProductsTab.vue'
   import DiscountAssignCategoriesTab from './DiscountAssignCategoriesTab.vue'
 
@@ -124,6 +128,11 @@
         label: 'General',
         slot: 'general',
         value: 'general'
+      },
+      {
+        label: 'Requirements',
+        slot: 'requirements',
+        value: 'requirements'
       }
     ]
 
