@@ -60,6 +60,13 @@ export type DiscountEntityMapDto = {
   EntityIds: string[]
 }
 
+export type DiscountRuleCreateDto = {
+  DiscountId: string
+  RuleType: DiscountRuleType
+  SpentSpecificAmount: number
+  SubtotalAmountInCart: number
+}
+
 export type UpsertDiscountDto = {
   Id?: string
   DiscountType: DiscountType

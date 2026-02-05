@@ -399,7 +399,8 @@
       brandOptions.value = [
         ...((response.Items || []) as BrandDto[]).map(b => ({ label: b.Name, value: b.Id }))
       ]
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error fetching brands:', error)
       toast.add({ title: 'Error', description: 'Failed to load brands', color: 'error' })
     }
@@ -426,10 +427,12 @@
       })
 
       productsData.value = response
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error fetching products:', error)
       toast.add({ title: 'Error', description: 'Failed to load products', color: 'error' })
-    } finally {
+    }
+    finally {
       productsLoading.value = false
     }
   }
@@ -465,23 +468,64 @@
     }
   }
 
+  const addAmountRequirement = async () => {
+    if (!props.discountId) {
+      toast.add({ title: 'Warning', description: unsavedAlertDescription, color: 'warning' })
+      return
+    }
+
+    if (showSpentSpecificAmount.value && spentMinimumAmount.value === null) {
+      toast.add({ title: 'Warning', description: 'Enter a minimum amount spent', color: 'warning' })
+      return
+    }
+
+    if (showCartSubtotalAmount.value && cartSubtotalMinimumAmount.value === null) {
+      toast.add({ title: 'Warning', description: 'Enter a minimum cart subtotal', color: 'warning' })
+      return
+    }
+
+    const ruleType = showSpentSpecificAmount.value
+      ? DiscountRuleType.SpentSpecificAmount
+      : DiscountRuleType.SubtotalAmountInCart
+
+    mapLoading.value = true
+
+    try {
+      await DiscountService.addDiscountRule({
+        DiscountId: props.discountId,
+        RuleType: ruleType,
+        SpentSpecificAmount: spentMinimumAmount.value ?? 0,
+        SubtotalAmountInCart: cartSubtotalMinimumAmount.value ?? 0
+      })
+
+      toast.add({ title: 'Success', description: 'Requirement added successfully', color: 'success' })
+      spentMinimumAmount.value = null
+      cartSubtotalMinimumAmount.value = null
+      selectedRuleType.value = null
+    }
+    catch (error) {
+      console.error('Error adding discount rule:', error)
+      toast.add({ title: 'Error', description: 'Failed to add requirement', color: 'error' })
+    }
+    finally {
+      mapLoading.value = false
+    }
+  }
+
   const clearSelection = () => {
     selectedRuleType.value = null
     rowSelection.value = {}
     productsData.value = null
   }
 
-  const onAddRequirement = () => {
-    if (showSpentSpecificAmount.value) {
-      spentMinimumAmount.value = null
-    }
-
-    if (showCartSubtotalAmount.value) {
-      cartSubtotalMinimumAmount.value = null
-    }
-
+  const onAddRequirement = async () => {
     if (showProductRequirement.value) {
-      onSaveMappings()
+      await onSaveMappings()
+      return
+    }
+
+    if (showSpentSpecificAmount.value || showCartSubtotalAmount.value) {
+      await addAmountRequirement()
       return
     }
 
