@@ -65,6 +65,21 @@ export type DiscountRuleCreateDto = {
   RuleType: DiscountRuleType
   SpentSpecificAmount: number
   SubtotalAmountInCart: number
+  EntityIds?: string[]
+}
+
+export type DiscountRuleDto = {
+  Id: string
+  RuleType: DiscountRuleType
+  SpentSpecificAmount: number
+  SubtotalAmountInCart: number
+  NumberOfProducts: number
+  NumberOfCustomers: number
+}
+
+export type DiscountRuleDeleteDto = {
+  DiscountId: string
+  RuleId: string
 }
 
 export type UpsertDiscountDto = {
