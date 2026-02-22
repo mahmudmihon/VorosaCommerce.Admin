@@ -82,6 +82,19 @@ export type DiscountRuleDeleteDto = {
   RuleId: string
 }
 
+export type DiscountCouponDto = {
+  Id: string
+  DiscountId: string
+  CouponCode: string
+  UsageCount: number
+}
+
+export type UpsertDiscountCouponDto = {
+  Id?: string
+  DiscountId: string
+  CouponCode: string
+}
+
 export type UpsertDiscountDto = {
   Id?: string
   DiscountType: DiscountType

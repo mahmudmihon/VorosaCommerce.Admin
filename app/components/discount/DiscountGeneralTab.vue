@@ -257,14 +257,14 @@
         name="RequiresCouponCode"
         class="flex items-center justify-between gap-2"
       >
-        <USwitch v-model="requiresCouponCode" />
+      <USwitch v-model="requiresCouponCode" :ui="{ base: 'cursor-pointer' }" />
       </UFormField>
       <UFormField
         label="Is Cumulative"
         name="IsCumulative"
         class="flex items-center justify-between gap-2"
       >
-        <USwitch v-model="isCumulative" />
+      <USwitch v-model="isCumulative" :ui="{ base: 'cursor-pointer' }" />
       </UFormField>
     </div>
   </UCard>
@@ -357,7 +357,7 @@
         name="IsEnabled"
         class="flex items-center justify-between gap-2"
       >
-        <USwitch v-model="isEnabled" />
+        <USwitch v-model="isEnabled" :ui="{ base: 'cursor-pointer' }" />
       </UFormField>
     </div>
   </UCard>

@@ -81,6 +81,9 @@
       <template #assign-categories>
         <DiscountAssignCategoriesTab :discount-id="generalState.Id" />
       </template>
+      <template #coupon-codes>
+        <DiscountCouponCodesTab :discount-id="generalState.Id" />
+      </template>
     </UTabs>
   </div>
 </template>
@@ -94,6 +97,7 @@
   import DiscountRequirementsTab from './DiscountRequirementsTab.vue'
   import DiscountAssignProductsTab from './DiscountAssignProductsTab.vue'
   import DiscountAssignCategoriesTab from './DiscountAssignCategoriesTab.vue'
+  import DiscountCouponCodesTab from './DiscountCouponCodesTab.vue'
 
   const props = defineProps<{
     initialData?: DiscountDto
@@ -149,6 +153,14 @@
         label: 'Applied To Categories',
         slot: 'assign-categories',
         value: 'assign-categories'
+      })
+    }
+
+    if (generalState.RequiresCouponCode && generalState.Id) {
+      baseItems.push({
+        label: 'Coupon Codes',
+        slot: 'coupon-codes',
+        value: 'coupon-codes'
       })
     }
 
@@ -219,6 +231,12 @@
       currentTab.value = 'general'
     }
     if (value !== DiscountType.AssignedToCategories && currentTab.value === 'assign-categories') {
+      currentTab.value = 'general'
+    }
+  })
+
+  watch(() => generalState.RequiresCouponCode, (value) => {
+    if (!value && currentTab.value === 'coupon-codes') {
       currentTab.value = 'general'
     }
   })

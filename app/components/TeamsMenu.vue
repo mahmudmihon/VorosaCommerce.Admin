@@ -1,69 +1,20 @@
-<script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
-
-defineProps<{
-  collapsed?: boolean
-}>()
-
-const teams = ref([{
-  label: 'Nuxt',
-  avatar: {
-    src: 'https://github.com/nuxt.png',
-    alt: 'Nuxt'
-  }
-}, {
-  label: 'NuxtHub',
-  avatar: {
-    src: 'https://github.com/nuxt-hub.png',
-    alt: 'NuxtHub'
-  }
-}, {
-  label: 'NuxtLabs',
-  avatar: {
-    src: 'https://github.com/nuxtlabs.png',
-    alt: 'NuxtLabs'
-  }
-}])
-const selectedTeam = ref(teams.value[0])
-
-const items = computed<DropdownMenuItem[][]>(() => {
-  return [teams.value.map(team => ({
-    ...team,
-    onSelect() {
-      selectedTeam.value = team
-    }
-  })), [{
-    label: 'Create team',
-    icon: 'i-lucide-circle-plus'
-  }, {
-    label: 'Manage teams',
-    icon: 'i-lucide-cog'
-  }]]
-})
-</script>
-
 <template>
-  <UDropdownMenu
-    :items="items"
-    :content="{ align: 'center', collisionPadding: 12 }"
-    :ui="{ content: collapsed ? 'w-40' : 'w-(--reka-dropdown-menu-trigger-width)', item: 'cursor-pointer' }"
-    class="cursor-pointer"
+  <UButton
+    color="neutral"
+    variant="ghost"
+    block
+    :square="collapsed"
+    class="cursor-pointer gap-2"
+    :class="[!collapsed && 'py-2']"
+    :ui="{ base: 'justify-start' }"
   >
-    <UButton
-      v-bind="{
-        ...selectedTeam,
-        label: collapsed ? undefined : selectedTeam?.label,
-        trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down'
-      }"
-      color="neutral"
-      variant="ghost"
-      block
-      :square="collapsed"
-      class="data-[state=open]:bg-elevated cursor-pointer"
-      :class="[!collapsed && 'py-2']"
-      :ui="{
-        trailingIcon: 'text-dimmed'
-      }"
-    />
-  </UDropdownMenu>
+    <img src="/icon.png" alt="VorosaCommerce" class="size-5">
+    <span v-if="!collapsed" class="text-sm font-semibold">Vorosa Admin</span>
+  </UButton>
 </template>
+
+<script setup lang="ts">
+  defineProps<{
+    collapsed?: boolean
+  }>()
+</script>

@@ -242,7 +242,7 @@
             <div class="flex justify-end gap-2">
 
               <UButton
-                label="Apply Filters"
+                label="Search"
                 icon="solar:minimalistic-magnifer-line-duotone"
                 color="primary"
                 variant="solid"
@@ -287,6 +287,89 @@
             </UTable>
           </template>
         </div>
+        <div v-else-if="showCustomerRequirement" class="mt-6 space-y-6">
+          <GenericAlert
+            v-if="!discountId"
+            :title="unsavedAlertTitle"
+            :description="unsavedAlertDescription"
+            color="warning"
+            variant="soft"
+          />
+          <template v-else>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <UFormField label="Search">
+                <UInput
+                  v-model="customerSearchTerm"
+                  placeholder="Search by name, email or phone..."
+                  class="w-full"
+                />
+              </UFormField>
+
+              <UFormField label="Roles">
+                <USelectMenu
+                  v-model="selectedRoleIds"
+                  :items="roleOptions"
+                  multiple
+                  searchable
+                  placeholder="Select roles"
+                  value-key="value"
+                  label-key="label"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
+
+            <div class="flex justify-end">
+              <UButton
+                label="Search"
+                icon="solar:minimalistic-magnifer-line-duotone"
+                color="primary"
+                variant="solid"
+                class="cursor-pointer"
+                :loading="customersLoading"
+                @click="fetchCustomers"
+              />
+            </div>
+
+            <UTable
+              v-if="customersData"
+              ref="customerTable"
+              v-model:row-selection="customerRowSelection"
+              :data="customerTableData"
+              :columns="customerColumns"
+              :loading="customersLoading"
+              :ui="{
+                base: 'table-fixed border-separate border-spacing-0',
+                thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
+                tbody: '[&>tr]:last:[&>td]:border-b-0',
+                th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
+                td: 'border-b border-default',
+                separator: 'h-0'
+              }"
+              class="mt-2"
+            >
+              <template #FullName-cell="{ row }">
+                <span>{{ formatFullName(row.original.FirstName, row.original.LastName) }}</span>
+              </template>
+              <template #Active-cell="{ row }">
+                <UIcon
+                  :name="row.original.Active ? 'i-solar:check-circle-bold-duotone' : 'i-solar:close-circle-bold-duotone'"
+                  :class="row.original.Active ? 'text-primary' : 'text-red-500'"
+                  class="size-5"
+                />
+              </template>
+              <template #CreatedOnUtc-cell="{ row }">
+                <span>{{ formatLocalDate(row.original.CreatedOnUtc) }}</span>
+              </template>
+            </UTable>
+
+            <div v-if="customersData" class="flex items-center justify-between gap-3 border-t border-default pt-4 mt-4">
+              <div class="text-sm text-muted">
+                Total {{ customersData?.TotalCount || 0 }} customers
+              </div>
+            </div>
+          </template>
+        </div>
 
         <div class="mt-6 flex justify-end gap-2">
           <UButton
@@ -302,7 +385,7 @@
             color="primary"
             variant="solid"
             class="cursor-pointer"
-            :disabled="showProductRequirement && selectedProductIds.length === 0"
+            :disabled="(showProductRequirement && selectedProductIds.length === 0) || (showCustomerRequirement && selectedCustomerIds.length === 0)"
             :loading="mapLoading"
             @click="onAddRequirement"
           />
@@ -374,13 +457,17 @@
   import { Icon } from '@iconify/vue'
   import BrandService from '~/services/BrandService'
   import CategoryService from '~/services/CategoryService'
+  import CustomerService from '~/services/CustomerService'
   import DiscountService from '~/services/DiscountService'
   import ProductService from '~/services/ProductService'
+  import RoleService from '~/services/RoleService'
   import { DiscountEntityType, DiscountRuleType } from '~/types/catalog/Discount'
   import type { BrandDto } from '~/types/catalog/Brand'
   import type { CategoryDto } from '~/types/catalog/Category'
+  import type { CustomerDto } from '~/types/identity/Customer'
   import type { ProductDto } from '~/types/catalog/Product'
   import type { PagedList } from '~/types/common/PagedList'
+  import type { RoleDto } from '~/types/identity/Role'
   import type { DiscountEntityDto, DiscountRuleDto } from '~/types/catalog/Discount'
   import GenericAlert from '~/components/common/GenericAlert.vue'
 
@@ -390,6 +477,7 @@
 
   type ProductRow = ProductDto & { id: string }
   type EntityRow = DiscountEntityDto & { id: string }
+  type CustomerRow = CustomerDto & { id: string }
 
   type UTableExpose = {
     tableApi?: {
@@ -401,15 +489,23 @@
       getFilteredSelectedRowModel: () => { rows: Array<{ original: EntityRow }> }
     }
   }
+  type CustomerTableExpose = {
+    tableApi?: {
+      getFilteredSelectedRowModel: () => { rows: Array<{ original: CustomerRow }> }
+    }
+  }
 
   const toast = useToast()
   const UCheckbox = resolveComponent('UCheckbox')
   const selectableTable = useTemplateRef<UTableExpose | null>('selectableTable')
   const entityTable = useTemplateRef<EntityTableExpose | null>('entityTable')
+  const customerTable = useTemplateRef<CustomerTableExpose | null>('customerTable')
   const unsavedAlertTitle = 'Save general information first'
   const unsavedAlertDescription = 'Save the discount general information before adding product requirements.'
   const productsLoading = ref(false)
   const productsData = ref<PagedList<ProductDto> | null>(null)
+  const customersLoading = ref(false)
+  const customersData = ref<PagedList<CustomerDto> | null>(null)
   const rulesLoading = ref(false)
   const requirementRules = ref<DiscountRuleDto[]>([])
   const editEntitiesModalOpen = ref(false)
@@ -421,12 +517,16 @@
   const entityRowSelection = ref<Record<string, boolean>>({})
   const deleteEntitiesLoading = ref(false)
   const searchTerm = ref('')
+  const customerSearchTerm = ref('')
   const publishedFilter = ref<'all' | 'published' | 'unpublished'>('all')
   const selectedCategoryIds = ref<string[]>([])
   const selectedBrandIds = ref<string[]>([])
+  const selectedRoleIds = ref<string[]>([])
   const categoryOptions = ref<Array<{ label: string, value: string }>>([])
   const brandOptions = ref<Array<{ label: string, value: string }>>([])
+  const roleOptions = ref<Array<{ label: string, value: string }>>([])
   const rowSelection = ref<Record<string, boolean>>({})
+  const customerRowSelection = ref<Record<string, boolean>>({})
   const mapLoading = ref(false)
   const deleteRuleLoadingId = ref<string | null>(null)
   const maxPageSize = 1000
@@ -484,11 +584,12 @@
 
   const showSpentSpecificAmount = computed(() => selectedRuleType.value === DiscountRuleType.SpentSpecificAmount)
   const showCartSubtotalAmount = computed(() => selectedRuleType.value === DiscountRuleType.SubtotalAmountInCart)
+  const showCustomerRequirement = computed(() => selectedRuleType.value === DiscountRuleType.AssignToSpecificCustomer)
   const showProductRequirement = computed(() => [
     DiscountRuleType.HasAllProducts,
     DiscountRuleType.HasOneofAnyProducts
   ].includes(selectedRuleType.value ?? DiscountRuleType.AssignToSpecificCustomer))
-  const showRequirementDetails = computed(() => showSpentSpecificAmount.value || showCartSubtotalAmount.value || showProductRequirement.value)
+  const showRequirementDetails = computed(() => showSpentSpecificAmount.value || showCartSubtotalAmount.value || showProductRequirement.value || showCustomerRequirement.value)
   const isAmountRule = (ruleType: DiscountRuleType) => [
     DiscountRuleType.SpentSpecificAmount,
     DiscountRuleType.SubtotalAmountInCart
@@ -507,6 +608,8 @@
     style: 'currency',
     currency: 'USD'
   }).format(amount)
+  const formatLocalDate = (utcDate: string) => new Date(utcDate).toLocaleString()
+  const formatFullName = (firstName?: string | null, lastName?: string | null) => [firstName, lastName].filter(Boolean).join(' ')
 
   const ruleLabel = (ruleType: DiscountRuleType) => {
     switch (ruleType) {
@@ -587,14 +690,45 @@
     { accessorKey: 'EntityName', header: 'Name' }
   ]))
 
+  const customerColumns = computed<TableColumn<CustomerRow>[]>(() => ([
+    {
+      id: 'select',
+      header: ({ table }) =>
+        h(UCheckbox, {
+          modelValue: table.getIsSomePageRowsSelected() ? 'indeterminate' : table.getIsAllPageRowsSelected(),
+          'onUpdate:modelValue': (value: boolean | 'indeterminate') => table.toggleAllPageRowsSelected(!!value),
+          ariaLabel: 'Select all'
+        }),
+      cell: ({ row }) =>
+        h(UCheckbox, {
+          modelValue: row.getIsSelected(),
+          'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
+          ariaLabel: 'Select row'
+        })
+    },
+    { id: 'FullName', header: 'Name' },
+    { accessorKey: 'Email', header: 'Email' },
+    { accessorKey: 'Active', header: 'Active' },
+    { accessorKey: 'CreatedOnUtc', header: 'Registered on' }
+  ]))
+
   const selectedProductIds = computed<string[]>(() => {
     const rows = selectableTable.value?.tableApi?.getFilteredSelectedRowModel().rows ?? []
+    return rows.map(r => r.original.Id).filter((id): id is string => Boolean(id))
+  })
+  const selectedCustomerIds = computed<string[]>(() => {
+    const rows = customerTable.value?.tableApi?.getFilteredSelectedRowModel().rows ?? []
     return rows.map(r => r.original.Id).filter((id): id is string => Boolean(id))
   })
 
   const entityTableData = computed<EntityRow[]>(() => {
     if (!entitiesData.value?.Items) return []
     return entitiesData.value.Items.map(item => ({ ...item, id: item.Id }))
+  })
+
+  const customerTableData = computed<CustomerRow[]>(() => {
+    if (!customersData.value?.Items) return []
+    return customersData.value.Items.map(item => ({ ...item, id: item.Id }))
   })
 
   const selectedEntityIds = computed<string[]>(() => {
@@ -617,7 +751,8 @@
       categoryOptions.value = [
         ...((response.Items || []) as CategoryDto[]).map(c => ({ label: c.Name, value: c.Id }))
       ]
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error fetching categories:', error)
       toast.add({ title: 'Error', description: 'Failed to load categories', color: 'error' })
     }
@@ -637,6 +772,17 @@
     catch (error) {
       console.error('Error fetching brands:', error)
       toast.add({ title: 'Error', description: 'Failed to load brands', color: 'error' })
+    }
+  }
+
+  const fetchRoles = async () => {
+    try {
+      const response = await RoleService.getRoles({ CurrentPage: 1, PageSize: 1000 })
+      roleOptions.value = (response.Items || []).map((role: RoleDto) => ({ label: role.Name, value: role.Id }))
+    }
+    catch (error) {
+      console.error('Error fetching roles:', error)
+      toast.add({ title: 'Error', description: 'Failed to load roles', color: 'error' })
     }
   }
 
@@ -679,6 +825,29 @@
     toast.add({ title: 'Import', description: 'Import is not available yet', color: 'info' })
   }
 
+  const fetchCustomers = async () => {
+    customersLoading.value = true
+    customerRowSelection.value = {}
+
+    try {
+      const response = await CustomerService.getCustomers({
+        CurrentPage: 1,
+        PageSize: maxPageSize,
+        SearchTerm: customerSearchTerm.value || undefined,
+        RoleIds: selectedRoleIds.value.length ? selectedRoleIds.value : undefined
+      })
+
+      customersData.value = response
+    }
+    catch (error) {
+      console.error('Error fetching customers:', error)
+      toast.add({ title: 'Error', description: 'Failed to load customers', color: 'error' })
+    }
+    finally {
+      customersLoading.value = false
+    }
+  }
+
   const onSaveMappings = async () => {
     if (!props.discountId || !selectedProductIds.value.length) return
 
@@ -697,10 +866,12 @@
       rowSelection.value = {}
       selectedRuleType.value = null
       await fetchRequirementRules()
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error adding discount rule:', error)
       toast.add({ title: 'Error', description: 'Failed to add requirement', color: 'error' })
-    } finally {
+    }
+    finally {
       mapLoading.value = false
     }
   }
@@ -750,10 +921,39 @@
     }
   }
 
+  const addCustomerRequirement = async () => {
+    if (!props.discountId || !selectedCustomerIds.value.length) return
+
+    mapLoading.value = true
+
+    try {
+      await DiscountService.addDiscountRule({
+        DiscountId: props.discountId,
+        RuleType: DiscountRuleType.AssignToSpecificCustomer,
+        SpentSpecificAmount: 0,
+        SubtotalAmountInCart: 0,
+        EntityIds: selectedCustomerIds.value
+      })
+      toast.add({ title: 'Success', description: 'Requirement added successfully', color: 'success' })
+      customerRowSelection.value = {}
+      selectedRuleType.value = null
+      await fetchRequirementRules()
+    }
+    catch (error) {
+      console.error('Error adding customer requirement:', error)
+      toast.add({ title: 'Error', description: 'Failed to add requirement', color: 'error' })
+    }
+    finally {
+      mapLoading.value = false
+    }
+  }
+
   const clearSelection = () => {
     selectedRuleType.value = null
     rowSelection.value = {}
     productsData.value = null
+    customerRowSelection.value = {}
+    customersData.value = null
   }
 
   const fetchRequirementRules = async () => {
@@ -768,10 +968,12 @@
       requirementRules.value = await DiscountService.getDiscountRules({
         DiscountId: props.discountId
       })
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error fetching requirement rules:', error)
       toast.add({ title: 'Error', description: 'Failed to load requirements', color: 'error' })
-    } finally {
+    }
+    finally {
       rulesLoading.value = false
     }
   }
@@ -829,10 +1031,12 @@
         PageSize: entityPageSize.value
       })
       entitiesData.value = response
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error fetching requirement entities:', error)
       toast.add({ title: 'Error', description: 'Failed to load entities', color: 'error' })
-    } finally {
+    }
+    finally {
       entitiesLoading.value = false
     }
   }
@@ -848,10 +1052,12 @@
       entityRowSelection.value = {}
       await fetchRequirementEntities()
       await fetchRequirementRules()
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error deleting requirement entities:', error)
       toast.add({ title: 'Error', description: 'Failed to remove entities', color: 'error' })
-    } finally {
+    }
+    finally {
       deleteEntitiesLoading.value = false
     }
   }
@@ -859,6 +1065,11 @@
   const onAddRequirement = async () => {
     if (showProductRequirement.value) {
       await onSaveMappings()
+      return
+    }
+
+    if (showCustomerRequirement.value) {
+      await addCustomerRequirement()
       return
     }
 
@@ -878,6 +1089,22 @@
     if (!brandOptions.value.length) {
       fetchBrands()
     }
+  })
+
+  watch(showCustomerRequirement, async (value) => {
+    if (!value) return
+    if (!roleOptions.value.length) {
+      await fetchRoles()
+    }
+    customersData.value = null
+  })
+
+  watch(customerSearchTerm, () => {
+    customersData.value = null
+  })
+
+  watch(selectedRoleIds, () => {
+    customersData.value = null
   })
 
   watch(() => props.discountId, (value) => {

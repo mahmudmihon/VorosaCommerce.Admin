@@ -1,6 +1,6 @@
 import BaseService from './BaseService'
 import type { PagedList } from '~/types/common/PagedList'
-import type { DiscountDto, DiscountEntityDto, DiscountEntityMapDto, DiscountRuleCreateDto, DiscountRuleDeleteDto, DiscountRuleDto, UpsertDiscountDto } from '~/types/catalog/Discount'
+import type { DiscountCouponDto, DiscountDto, DiscountEntityDto, DiscountEntityMapDto, DiscountRuleCreateDto, DiscountRuleDeleteDto, DiscountRuleDto, UpsertDiscountCouponDto, UpsertDiscountDto } from '~/types/catalog/Discount'
 
 const resource = '/api/v1/admin/discount'
 
@@ -45,6 +45,18 @@ class DiscountService {
 
   async deleteDiscountEntity(id: string): Promise<void> {
     await this.baseService.delete(`${resource}/entity/${id}`)
+  }
+
+  async getDiscountCoupons(params: Record<string, unknown>): Promise<DiscountCouponDto[]> {
+    return await this.baseService.get<DiscountCouponDto[]>(`${resource}/coupon/list`, params)
+  }
+
+  async upsertDiscountCoupon(payload: UpsertDiscountCouponDto): Promise<void> {
+    await this.baseService.post(`${resource}/coupon/upsert`, payload)
+  }
+
+  async deleteDiscountCoupon(id: string): Promise<void> {
+    await this.baseService.delete(`${resource}/coupon/${id}`)
   }
 }
 
