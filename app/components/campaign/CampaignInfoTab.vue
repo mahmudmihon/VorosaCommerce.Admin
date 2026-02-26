@@ -102,9 +102,12 @@
       >
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="text-base font-semibold text-highlighted">Body</div>
-          <div class="flex flex-wrap items-center gap-2">
+          <div
+            v-if="state.Type !== 'sms'"
+            class="flex flex-wrap items-center gap-2"
+          >
             <UButton
-              :icon="isBodyFullscreen ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2'"
+              :icon="isBodyFullscreen ? 'i-solar:minimize-square-3-bold-duotone' : 'i-solar:maximize-square-3-bold-duotone'"
               size="sm"
               color="neutral"
               variant="soft"
@@ -112,39 +115,54 @@
               @click="toggleBodyFullscreen"
             />
             <div class="flex flex-wrap items-center gap-2 rounded-full bg-elevated/50 p-1">
-            <UButton
-              v-if="editorMode === 'html'"
-              icon="i-lucide-eye"
-              size="sm"
-              color="neutral"
-              variant="soft"
-              class="cursor-pointer rounded-full"
-              @click="setEditorMode('preview')"
-            />
-            <UButton
-              label="HTML Editor"
-              icon="i-lucide-code"
-              size="sm"
-              :color="editorMode === 'html' ? 'primary' : 'neutral'"
-              :variant="editorMode === 'html' ? 'solid' : 'soft'"
-              class="cursor-pointer rounded-full"
-              @click="setEditorMode('html')"
-            />
-            <UButton
-              label="Visual Builder"
-              icon="i-lucide-layout-template"
-              size="sm"
-              :color="editorMode === 'visual' ? 'primary' : 'neutral'"
-              :variant="editorMode === 'visual' ? 'solid' : 'soft'"
-              class="cursor-pointer rounded-full"
-              @click="setEditorMode('visual')"
-            />
+              <UButton
+                v-if="editorMode === 'html'"
+                icon="i-solar:eye-bold-duotone"
+                size="sm"
+                color="neutral"
+                variant="soft"
+                class="cursor-pointer rounded-full"
+                @click="setEditorMode('preview')"
+              />
+              <UButton
+                label="HTML Editor"
+                icon="i-solar:code-circle-bold-duotone"
+                size="sm"
+                :color="editorMode === 'html' ? 'primary' : 'neutral'"
+                :variant="editorMode === 'html' ? 'solid' : 'soft'"
+                class="cursor-pointer rounded-full"
+                @click="setEditorMode('html')"
+              />
+              <UButton
+                label="Visual Builder"
+                icon="i-solar:widget-4-bold-duotone"
+                size="sm"
+                :color="editorMode === 'visual' ? 'primary' : 'neutral'"
+                :variant="editorMode === 'visual' ? 'solid' : 'soft'"
+                class="cursor-pointer rounded-full"
+                @click="setEditorMode('visual')"
+              />
             </div>
           </div>
         </div>
 
         <div
-          v-if="editorMode === 'html'"
+          v-if="state.Type === 'sms'"
+          class="rounded-2xl border border-default bg-default/60 p-2"
+          :class="isBodyFullscreen ? 'flex-1 min-h-0' : ''"
+        >
+          <ClientOnly>
+            <Codemirror
+              v-model="smsBody"
+              :extensions="smsEditorExtensions"
+              :style="{ height: isBodyFullscreen ? '100%' : '360px' }"
+              class="rounded-xl"
+            />
+          </ClientOnly>
+        </div>
+
+        <div
+          v-else-if="editorMode === 'html'"
           class="rounded-2xl border border-default bg-default/60 p-2"
           :class="isBodyFullscreen ? 'flex-1 min-h-0' : ''"
         >
@@ -169,7 +187,7 @@
               class="flex h-90 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-default bg-default text-center"
             >
               <div class="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <UIcon name="i-lucide-wand-2" class="size-7" />
+                <UIcon name="i-solar:magic-stick-3-bold-duotone" class="size-7" />
               </div>
               <div class="space-y-1">
                 <div class="text-base font-semibold text-highlighted">Visual Builder</div>
@@ -177,7 +195,7 @@
               </div>
               <UButton
                 label="Open Visual Builder"
-                icon="i-lucide-maximize-2"
+                icon="i-solar:maximize-square-3-bold-duotone"
                 size="sm"
                 color="primary"
                 variant="soft"
@@ -209,6 +227,42 @@
         </div>
       </div>
     </UCard>
+
+    <UCard
+      variant="soft"
+      class="flex flex-col max-w-4xl p-2 rounded-2xl"
+    >
+      <div class="flex gap-2 items-center">
+        <Icon
+          icon="solar:calendar-date-bold-duotone"
+          width="24"
+          height="24"
+          style="color: #00C16A"
+        />
+        <h3 class="text-xl font-medium">Schedule</h3>
+      </div>
+      <p class="text-sm text-muted-foreground mt-2">Choose when this campaign will be sent</p>
+
+      <div class="mt-6">
+        <UFormField
+          label="Scheduled On"
+          name="ScheduledOn"
+          class="font-medium"
+        >
+          <UInput
+            v-model="scheduledOnLocal"
+            type="datetime-local"
+            icon="solar:calendar-minimalistic-bold-duotone"
+            size="xl"
+            placeholder="Pick a date and time"
+            class="w-full rounded-2xl"
+          />
+          <template #help>
+            <span class="text-muted-foreground text-xs">Leave empty to send manually</span>
+          </template>
+        </UFormField>
+      </div>
+    </UCard>
   </div>
 </template>
 
@@ -231,6 +285,7 @@
     Name: string
     Subject: string
     BodyHtml: string
+    ScheduledOn?: string | null
   }
 
   const state = defineModel<CampaignInfoState>('state', { required: true })
@@ -285,6 +340,32 @@
 
   const bodySectionRef = ref<HTMLElement | null>(null)
   const isBodyFullscreen = ref(false)
+
+  const formatLocalDateTime = (dateStr?: string | null): string => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    if (Number.isNaN(date.getTime())) return ''
+    const offset = date.getTimezoneOffset() * 60000
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16)
+  }
+
+  const updateScheduledOn = (val: string) => {
+    if (!val) {
+      state.value.ScheduledOn = null
+      return
+    }
+    const date = new Date(val)
+    if (Number.isNaN(date.getTime())) {
+      state.value.ScheduledOn = null
+      return
+    }
+    state.value.ScheduledOn = date.toISOString()
+  }
+
+  const scheduledOnLocal = computed({
+    get: () => formatLocalDateTime(state.value.ScheduledOn),
+    set: (val) => updateScheduledOn(val)
+  })
 
   const toggleBodyFullscreen = async () => {
     if (!bodySectionRef.value) return
@@ -364,5 +445,24 @@
       lintGutter(),
       linter(view => lintCssInHtml(view.state.doc.toString()))
     ]
+  })
+
+  const smsEditorExtensions = computed(() => {
+    return colorMode.value === 'dark' ? [oneDark] : []
+  })
+
+  const smsBody = computed({
+    get: () => (state.value.Type === 'sms' ? state.value.BodyHtml ?? '' : ''),
+    set: (val: string) => {
+      if (state.value.Type === 'sms') {
+        state.value.BodyHtml = val
+      }
+    }
+  })
+
+  watch(() => state.value.Type, (type, prev) => {
+    if (type === 'sms' && prev !== 'sms' && state.value.BodyHtml?.trim().startsWith('<')) {
+      state.value.BodyHtml = ''
+    }
   })
 </script>

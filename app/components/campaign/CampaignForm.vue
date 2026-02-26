@@ -2,6 +2,24 @@
   <div class="flex flex-col gap-4 h-full overflow-auto">
     <div class="sticky top-0 z-10 flex justify-end gap-3 bg-default py-2">
       <UButton
+        v-if="infoState.Id"
+        label="Send"
+        icon="i-solar:plain-bold-duotone"
+        size="md"
+        color="secondary"
+        variant="soft"
+        class="cursor-pointer"
+      />
+      <UButton
+        v-if="infoState.Id"
+        label="Delete"
+        icon="i-solar:trash-bin-2-bold-duotone"
+        size="md"
+        color="error"
+        variant="soft"
+        class="cursor-pointer"
+      />
+      <UButton
         icon="solar:diskette-bold-duotone"
         size="md"
         color="primary"
@@ -45,33 +63,12 @@
             color="warning"
             variant="soft"
           />
-          <UCard
-            v-else
-            variant="soft"
-            class="flex flex-col max-w-4xl p-6 rounded-2xl"
-          >
-            <div class="text-sm text-muted-foreground">Conditions setup will appear here.</div>
-          </UCard>
+          <CampaignConditionsTab v-else v-model:state="conditionsState" />
         </div>
       </template>
 
       <template #recipients>
-        <div class="space-y-4 p-4 pb-8">
-          <GenericAlert
-            v-if="!infoState.Id"
-            title="Save campaign info first"
-            description="Complete the campaign info to unlock recipients."
-            color="warning"
-            variant="soft"
-          />
-          <UCard
-            v-else
-            variant="soft"
-            class="flex flex-col max-w-4xl p-6 rounded-2xl"
-          >
-            <div class="text-sm text-muted-foreground">Recipients setup will appear here.</div>
-          </UCard>
-        </div>
+        <CampaignRecipientsTab :campaign-id="infoState.Id" />
       </template>
 
       <template #history>
@@ -94,22 +91,7 @@
       </template>
 
       <template #test>
-        <div class="space-y-4 p-4 pb-8">
-          <GenericAlert
-            v-if="!infoState.Id"
-            title="Save campaign info first"
-            description="Complete the campaign info to unlock tests."
-            color="warning"
-            variant="soft"
-          />
-          <UCard
-            v-else
-            variant="soft"
-            class="flex flex-col max-w-4xl p-6 rounded-2xl"
-          >
-            <div class="text-sm text-muted-foreground">Test configuration will appear here.</div>
-          </UCard>
-        </div>
+        <CampaignTestTab :campaign-id="infoState.Id" />
       </template>
     </UTabs>
   </div>
@@ -119,16 +101,25 @@
   import * as z from 'zod'
   import type { TabsItem } from '#ui/types'
   import CampaignInfoTab from './CampaignInfoTab.vue'
+  import CampaignConditionsTab from './CampaignConditionsTab.vue'
+  import CampaignRecipientsTab from './CampaignRecipientsTab.vue'
+  import CampaignTestTab from './CampaignTestTab.vue'
   import GenericAlert from '~/components/common/GenericAlert.vue'
+  import CampaignService from '~/services/CampaignService'
+  import { CampaignType } from '~/types/marketing/Campaign'
+  import type { CampaignInfoDto, UpsertCampaignInfoDto } from '~/types/marketing/Campaign'
 
-  type CampaignType = 'email' | 'sms'
+  const props = defineProps<{
+    initialData?: CampaignInfoDto
+  }>()
 
   type CampaignInfoState = {
     Id?: string
-    Type: CampaignType
+    Type: 'email' | 'sms'
     Name: string
     Subject: string
     BodyHtml: string
+    ScheduledOn?: string | null
   }
 
   const currentTab = ref('info')
@@ -140,11 +131,21 @@
 </html>`
 
   const infoState = reactive<CampaignInfoState>({
-    Id: undefined,
-    Type: 'email',
-    Name: '',
-    Subject: '',
-    BodyHtml: defaultBodyHtml
+    Id: props.initialData?.Id,
+    Type: props.initialData?.Type === CampaignType.Sms ? 'sms' : 'email',
+    Name: props.initialData?.Name ?? '',
+    Subject: props.initialData?.Subject ?? '',
+    BodyHtml: props.initialData?.Body ?? defaultBodyHtml,
+    ScheduledOn: props.initialData?.ScheduledDate ?? null
+  })
+
+  const conditionsState = reactive({
+    createdFrom: '',
+    createdTo: '',
+    lastPurchaseFrom: '',
+    lastPurchaseTo: '',
+    hasOrder: 'all',
+    hasCart: 'all'
   })
 
   const items = ref<TabsItem[]>([
@@ -158,6 +159,7 @@
   const infoSchema = z.object({
     Name: z.string().min(1, 'Name is required'),
     Subject: z.string().optional(),
+    ScheduledOn: z.string().nullable().optional(),
     Type: z.enum(['email', 'sms'])
   }).superRefine((data, context) => {
     if (data.Type === 'email' && !data.Subject?.trim()) {
@@ -169,9 +171,33 @@
     }
   })
 
-  const onInfoSubmit = () => {
-    if (!infoState.Id) {
-      infoState.Id = crypto.randomUUID()
+  const toast = useToast()
+  const router = useRouter()
+
+  const onInfoSubmit = async () => {
+    const payload: UpsertCampaignInfoDto = {
+      Id: infoState.Id,
+      Type: infoState.Type === 'email' ? CampaignType.Email : CampaignType.Sms,
+      Name: infoState.Name,
+      Subject: infoState.Type === 'email' ? infoState.Subject : null,
+      Body: infoState.BodyHtml,
+      ScheduledDate: infoState.ScheduledOn ?? null
+    }
+
+    try {
+      const result = await CampaignService.upsertCampaignInfo(payload)
+      toast.add({ title: 'Success', description: 'Campaign info saved successfully', color: 'success' })
+
+      if (!infoState.Id) {
+        infoState.Id = result.Id
+        router.push(`/campaign/edit/${result.Id}`)
+      }
+      else {
+        infoState.Id = result.Id
+      }
+    }
+    catch {
+      toast.add({ title: 'Error', description: 'Failed to save campaign info', color: 'error' })
     }
   }
 </script>
