@@ -1,4 +1,5 @@
 import dotenvFlow from 'dotenv-flow';
+import tailwindcss from "@tailwindcss/vite";
 
 dotenvFlow.config();
 
@@ -18,6 +19,12 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/main.css'],
+
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
 
   routeRules: {
     '/api/**': {
