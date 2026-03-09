@@ -1,55 +1,50 @@
 <template>
-  <div class="border border-gray-200 dark:border-gray-800 rounded-lg mb-2 bg-white dark:bg-gray-900">
-    <div class="flex items-center justify-between p-3">
-      <div class="flex items-center gap-2">
-        <UButton
+  <div class="border-b border-gray-100 dark:border-gray-800 last:border-b-0">
+    <div class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group rounded-xl">
+      <div class="flex items-center gap-3">
+        <button
           v-if="item.Children && item.Children.length > 0"
-          :icon="isOpen ? 'i-solar:minus-circle-bold-duotone' : 'i-solar:add-circle-bold-duotone'"
-          :color="isOpen ? 'neutral' : 'primary'"
-          variant="ghost"
-          size="sm"
-          class="shrink-0"
+          class="flex items-center justify-center w-5 h-5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors focus:outline-none"
           @click="isOpen = !isOpen"
-        />
-        <div v-else class="w-8" />
+        >
+          <UIcon :name="isOpen ? 'i-solar:round-alt-arrow-down-line-duotone' : 'i-solar:round-alt-arrow-right-line-duotone'" class="w-5 h-5" />
+        </button>
+        <div v-else class="w-5" />
 
-        <span class="font-medium">{{ item.DisplayName }}</span>
+        <span class="font-medium text-gray-700 dark:text-gray-200">{{ item.DisplayName }}</span>
       </div>
 
       <div class="flex items-center gap-2">
-        <UTooltip text="Add sub menu">
-          <UButton
-            icon="i-solar:add-circle-bold-duotone"
-            variant="soft"
-            size="xs"
-            class="text-purple-600 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950 dark:text-purple-400 dark:hover:bg-purple-900"
-            @click="$emit('addSubMenu', item)"
-          />
-        </UTooltip>
-
-        <UTooltip text="Edit">
-          <UButton
-            icon="i-solar:pen-bold-duotone"
-            variant="soft"
-            size="xs"
-            class="text-cyan-600 bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-950 dark:text-cyan-400 dark:hover:bg-cyan-900"
-            @click="$emit('edit', item)"
-          />
-        </UTooltip>
-
-        <UTooltip text="Delete">
-          <UButton
-            icon="i-solar:trash-bin-trash-bold-duotone"
-            variant="soft"
-            size="xs"
-            class="text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:hover:bg-red-900"
-            @click="$emit('delete', item)"
-          />
-        </UTooltip>
+        <UButton
+          label="Add sub menu"
+          icon="i-solar:add-circle-line-duotone"
+          variant="outline"
+          color="primary"
+          size="md"
+          class="rounded-xl px-3 font-medium cursor-pointer"
+          @click="$emit('addSubMenu', item)"
+        />
+        <UButton
+          label="Edit"
+          icon="i-solar:pen-new-square-line-duotone"
+          variant="outline"
+          color="primary"
+          size="md"
+          class="rounded-xl px-3 font-medium cursor-pointer"
+          @click="$emit('edit', item)"
+        />
+        <UButton
+          icon="i-solar:trash-bin-2-bold-duotone"
+          variant="ghost"
+          color="neutral"
+          size="md"
+          class="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 hover:bg-red-500/10 pointer-events-none group-hover:pointer-events-auto"
+          @click="$emit('delete', item)"
+        />
       </div>
     </div>
 
-    <div v-if="isOpen && item.Children && item.Children.length > 0" class="pl-8 pr-3 pb-3 border-t border-gray-100 dark:border-gray-800 pt-2">
+    <div v-if="isOpen && item.Children && item.Children.length > 0" class="pl-8">
       <HomepageTemplateMenuItem
         v-for="child in item.Children"
         :key="child.Id"
@@ -63,17 +58,17 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuDto } from '~/types/homepagetemplate/Menu'
+  import type { MenuDto } from '~/types/homepagetemplate/Menu'
 
-const props = defineProps<{
-  item: MenuDto
-}>()
+  const props = defineProps<{
+    item: MenuDto
+  }>()
 
-const emit = defineEmits<{
-  (e: 'addSubMenu', item: MenuDto): void
-  (e: 'edit', item: MenuDto): void
-  (e: 'delete', item: MenuDto): void
-}>()
+  const emit = defineEmits<{
+    (e: 'addSubMenu', item: MenuDto): void
+    (e: 'edit', item: MenuDto): void
+    (e: 'delete', item: MenuDto): void
+  }>()
 
-const isOpen = ref(true)
+  const isOpen = ref(true)
 </script>

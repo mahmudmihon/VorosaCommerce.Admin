@@ -16,7 +16,7 @@
             size="md"
             :loading="deleteLoading"
             aria-label="Delete template"
-            class="cursor-pointer"
+            class="cursor-pointer rounded-lg px-3"
           >
             Delete
           </UButton>
@@ -29,7 +29,7 @@
               color="neutral"
               variant="subtle"
               :disabled="deleteLoading"
-              class="cursor-pointer"
+              class="cursor-pointer rounded-lg px-3"
               @click="deleteModalOpen = false"
             />
             <UButton
@@ -37,7 +37,7 @@
               color="error"
               variant="solid"
               :loading="deleteLoading"
-              class="cursor-pointer"
+              class="cursor-pointer rounded-lg px-3"
               @click="onDelete"
             />
           </div>
@@ -48,7 +48,7 @@
         size="md"
         color="primary"
         variant="solid"
-        class="cursor-pointer"
+        class="cursor-pointer rounded-lg px-3"
         :loading="saveLoading"
         :disabled="!isFormValid"
         @click="onSave"
@@ -85,6 +85,12 @@
           <HomepageTemplateMenuTab v-if="templateId" :template-id="templateId" />
         </div>
       </template>
+
+      <template #popular-products>
+        <div class="p-4 pb-8">
+          <HomepageTemplatePopularProductsTab v-if="templateId" :template-id="templateId" />
+        </div>
+      </template>
     </UTabs>
   </div>
 </template>
@@ -95,6 +101,7 @@ import HomepageTemplateService from '~/services/HomepageTemplateService'
 import type { UpsertHomepageTemplateDto } from '~/types/homepagetemplate/HomepageTemplate'
 import HomepageTemplateGeneralTab from '~/components/homepage-template/HomepageTemplateGeneralTab.vue'
 import HomepageTemplateMenuTab from '~/components/homepage-template/HomepageTemplateMenuTab.vue'
+import HomepageTemplatePopularProductsTab from '~/components/homepage-template/HomepageTemplatePopularProductsTab.vue'
 
 const props = defineProps<{
   templateId?: string
@@ -120,6 +127,11 @@ const items = computed(() => {
       label: 'Menu',
       slot: 'menu',
       value: 'menu'
+    })
+    tabs.push({
+      label: 'Popular Products',
+      slot: 'popular-products',
+      value: 'popular-products'
     })
   }
 

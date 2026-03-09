@@ -18,7 +18,7 @@
               size="md"
               color="success"
               variant="solid"
-              class="cursor-pointer"
+              class="cursor-pointer rounded-lg px-2"
             />
           </UDropdownMenu>
         </template>
@@ -121,7 +121,7 @@
                 label="Cancel"
                 color="neutral"
                 variant="subtle"
-                class="cursor-pointer"
+                class="cursor-pointer rounded-lg px-3"
                 :disabled="upsertLoading"
                 @click="upsertModalOpen = false"
               />
@@ -129,7 +129,7 @@
                 :label="upsertState.Id ? 'Save' : 'Create'"
                 color="primary"
                 variant="solid"
-                class="cursor-pointer"
+                class="cursor-pointer rounded-lg px-3"
                 :loading="upsertLoading"
                 type="submit"
               />
@@ -149,7 +149,7 @@
               label="Cancel"
               color="neutral"
               variant="subtle"
-              class="cursor-pointer"
+              class="cursor-pointer rounded-lg px-3"
               :disabled="deleteLoading"
               @click="deleteModalOpen = false"
             />
@@ -157,7 +157,7 @@
               label="Delete"
               color="error"
               variant="solid"
-              class="cursor-pointer"
+              class="cursor-pointer rounded-lg px-3"
               :loading="deleteLoading"
               @click="onDelete"
             />

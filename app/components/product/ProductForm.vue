@@ -8,7 +8,7 @@
           variant="soft"
           size="md"
           :loading="copyLoading"
-          class="cursor-pointer"
+          class="cursor-pointer rounded-lg px-3"
           @click="openCopyModal"
         >
           Copy
@@ -63,7 +63,7 @@
                 color="neutral"
                 variant="subtle"
                 :disabled="copyLoading"
-                class="cursor-pointer"
+                class="cursor-pointer rounded-lg px-3"
                 @click="copyModalOpen = false"
               />
               <UButton
@@ -71,7 +71,7 @@
                 color="primary"
                 variant="solid"
                 :loading="copyLoading"
-                class="cursor-pointer"
+                class="cursor-pointer rounded-lg px-3"
                 type="submit"
               />
             </div>
@@ -93,7 +93,7 @@
             size="md"
             :loading="deleteLoading"
             aria-label="Delete product"
-            class="cursor-pointer"
+            class="cursor-pointer rounded-lg px-3"
           >
             Delete
           </UButton>
@@ -106,7 +106,7 @@
               color="neutral"
               variant="subtle"
               :disabled="deleteLoading"
-              class="cursor-pointer"
+              class="cursor-pointer rounded-lg px-3"
               @click="deleteModalOpen = false"
             />
             <UButton
@@ -114,7 +114,7 @@
               color="error"
               variant="solid"
               :loading="deleteLoading"
-              class="cursor-pointer"
+              class="cursor-pointer rounded-lg px-3"
               @click="onDelete"
             />
           </div>
@@ -125,7 +125,7 @@
         size="md"
         color="primary"
         variant="solid"
-        class="cursor-pointer"
+        class="cursor-pointer rounded-lg px-3"
         @click="onSave"
       >
         Save

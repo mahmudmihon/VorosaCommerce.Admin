@@ -11,6 +11,7 @@
             label="Add Template"
             icon="i-solar:add-circle-bold-duotone"
             to="/homepage-template/create"
+            class="cursor-pointer rounded-lg px-3"
           />
         </template>
       </UDashboardNavbar>

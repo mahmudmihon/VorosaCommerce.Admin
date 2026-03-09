@@ -18,7 +18,7 @@
               size="md"
               color="success"
               variant="solid"
-              class="cursor-pointer"
+              class="cursor-pointer rounded-lg px-2"
             />
           </UDropdownMenu>
         </template>

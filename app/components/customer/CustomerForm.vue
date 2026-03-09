@@ -13,7 +13,7 @@
             size="md"
             color="primary"
             variant="solid"
-            class="cursor-pointer"
+            class="cursor-pointer rounded-lg px-3"
             @click="onSubmit"
           >
             Save

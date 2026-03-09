@@ -8,7 +8,7 @@
         size="md"
         color="secondary"
         variant="soft"
-        class="cursor-pointer"
+        class="cursor-pointer rounded-lg px-3"
       />
       <UButton
         v-if="infoState.Id"
@@ -17,14 +17,14 @@
         size="md"
         color="error"
         variant="soft"
-        class="cursor-pointer"
+        class="cursor-pointer rounded-lg px-3"
       />
       <UButton
         icon="solar:diskette-bold-duotone"
         size="md"
         color="primary"
         variant="solid"
-        class="cursor-pointer"
+        class="cursor-pointer rounded-lg px-3"
         @click="onInfoSubmit"
       >
         Save

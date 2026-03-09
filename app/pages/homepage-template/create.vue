@@ -13,6 +13,7 @@
             color="neutral"
             to="/homepage-template/list"
             icon="i-lucide-arrow-left"
+            class="rounded-xl cursor-pointer"
           />
         </template>
       </UDashboardNavbar>

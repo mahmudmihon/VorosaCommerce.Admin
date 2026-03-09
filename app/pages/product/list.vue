@@ -19,7 +19,7 @@
               size="md"
               color="success"
               variant="solid"
-              class="cursor-pointer"
+              class="cursor-pointer rounded-lg px-2"
             />
           </UDropdownMenu>
         </template>
@@ -192,6 +192,12 @@
               @click="fetchProducts"
             />
           </UTooltip>
+          <USelect
+            v-model="pageSize"
+            :items="pageSizeOptions"
+            :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
+            class="w-24"
+          />
           <UPagination
             v-model:page="page"
             :items-per-page="pageSize"
@@ -284,7 +290,7 @@
   const table = useTemplateRef<UTableExpose | null>('table')
 
   const page = ref(1)
-  const pageSize = ref(20)
+  const pageSize = ref(50)
   const searchTerm = ref('')
   const publishedFilter = ref<'all' | 'published' | 'unpublished'>('all')
   const selectedCategoryIds = ref<string[]>([])
@@ -299,6 +305,13 @@
     { label: 'All', value: 'all' },
     { label: 'Only Published', value: 'published' },
     { label: 'Only Unpublished', value: 'unpublished' }
+  ]
+
+  const pageSizeOptions = [
+    { label: '50', value: 50 },
+    { label: '200', value: 200 },
+    { label: '500', value: 500 },
+    { label: '1000', value: 1000 }
   ]
 
   const rowSelection = ref<Record<string, boolean>>({})
@@ -511,7 +524,11 @@
     }
   }
 
-  watch([page, pageSize], () => {
+  watch([page, pageSize], ([nextPage, nextSize], [_prevPage, prevSize]) => {
+    if (nextSize !== prevSize && nextPage !== 1) {
+      page.value = 1
+      return
+    }
     rowSelection.value = {}
     fetchProducts()
   })

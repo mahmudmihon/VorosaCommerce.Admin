@@ -7,10 +7,11 @@
       </h2>
       <UButton
         label="Add new"
-        icon="i-solar:add-circle-bold-duotone"
+        icon="i-solar:add-circle-line-duotone"
         color="primary"
-        variant="solid"
-        size="sm"
+        variant="outline"
+        size="md"
+        class="rounded-xl cursor-pointer"
         @click="addMenu"
       />
     </div>
@@ -24,7 +25,7 @@
       <p>No menus found. Click "Add new" to create one.</p>
     </div>
 
-    <div v-else class="space-y-2">
+    <div v-else class="border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900 overflow-hidden">
       <HomepageTemplateMenuItem
         v-for="menu in menus"
         :key="menu.Id"
@@ -36,7 +37,7 @@
     </div>
 
     <!-- Menu Modal -->
-    <UModal v-model:open="isModalOpen" :title="editingMenu ? 'Edit Menu' : 'Add Menu'" :ui="{ width: 'w-full sm:max-w-4xl' }">
+    <UModal v-model:open="isModalOpen" :title="editingMenu ? 'Edit Menu' : 'Add Menu'" :ui="{ content: 'w-full sm:max-w-4xl' }">
       <template #body>
         <UForm :schema="menuSchema" :state="menuState" class="space-y-4" @submit="onMenuSubmit">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -60,8 +61,8 @@
           </div>
 
           <div class="flex justify-end gap-2 mt-6">
-            <UButton label="Cancel" color="neutral" variant="soft" @click="isModalOpen = false" />
-            <UButton type="submit" label="Save" color="primary" :loading="saving" />
+            <UButton label="Cancel" color="neutral" variant="soft" @click="isModalOpen = false" class="rounded-xl cursor-pointer" />
+            <UButton type="submit" label="Save" color="primary" :loading="saving" class="rounded-xl cursor-pointer" />
           </div>
         </UForm>
       </template>
@@ -163,7 +164,8 @@ const deleteMenu = async (menu: MenuDto) => {
     await MenuService.deleteMenu(menu.Id)
     toast.add({ title: 'Success', description: 'Menu deleted successfully', color: 'success' })
     await fetchMenus()
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to delete menu', error)
     toast.add({ title: 'Error', description: 'Failed to delete menu', color: 'error' })
   }

@@ -23,7 +23,7 @@
                 size="md"
                 :loading="deleteLoading"
                 aria-label="Delete role"
-                class="cursor-pointer"
+                class="cursor-pointer rounded-lg px-3"
               >
                 Delete
               </UButton>
@@ -36,7 +36,7 @@
                   color="neutral"
                   variant="subtle"
                   :disabled="deleteLoading"
-                  class="cursor-pointer"
+                  class="cursor-pointer rounded-lg px-3"
                   @click="deleteModalOpen = false"
                 />
                 <UButton
@@ -44,7 +44,7 @@
                   color="error"
                   variant="solid"
                   :loading="deleteLoading"
-                  class="cursor-pointer"
+                  class="cursor-pointer rounded-lg px-3"
                   @click="onDelete"
                 />
               </div>
@@ -144,7 +144,7 @@
   async function onSubmit() {
     try {
       const result = await RoleService.upsertRole(state)
-      
+
       toast.add({ title: 'Success', description: 'Role saved successfully', color: 'success' })
 
       if (!state.Id) {
