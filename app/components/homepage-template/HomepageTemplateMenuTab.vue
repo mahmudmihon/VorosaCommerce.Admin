@@ -2,7 +2,11 @@
   <div>
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg font-semibold flex items-center gap-2">
-        <UIcon name="i-solar:list-bold-duotone" class="w-5 h-5" />
+        <UIcon
+          name="i-solar:bill-list-bold-duotone"
+          class="size-6"
+          style="color: #00C16A"
+        />
         Menus
       </h2>
       <UButton
@@ -21,7 +25,7 @@
     </div>
 
     <div v-else-if="!menus || menus.length === 0" class="text-center text-gray-500 py-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-      <UIcon name="i-solar:hamburger-menu-broken" class="w-12 h-12 mx-auto mb-2 text-gray-400" />
+      <UIcon name="i-solar:hamburger-menu-broken" class="size-12 mx-auto mb-2 text-gray-400" />
       <p>No menus found. Click "Add new" to create one.</p>
     </div>
 
@@ -61,8 +65,8 @@
           </div>
 
           <div class="flex justify-end gap-2 mt-6">
-            <UButton label="Cancel" color="neutral" variant="soft" @click="isModalOpen = false" class="rounded-xl cursor-pointer" />
-            <UButton type="submit" label="Save" color="primary" :loading="saving" class="rounded-xl cursor-pointer" />
+            <UButton label="Cancel" color="neutral" variant="soft" @click="isModalOpen = false" class="rounded-lg px-3 cursor-pointer" />
+            <UButton type="submit" label="Save" color="primary" :loading="saving" class="rounded-lg px-3 cursor-pointer" />
           </div>
         </UForm>
       </template>

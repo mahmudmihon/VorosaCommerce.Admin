@@ -86,9 +86,50 @@
         </div>
       </template>
 
+      <template #categories>
+        <div class="p-4 pb-8">
+          <HomepageTemplateCategoriesTab
+            v-if="templateId"
+            :template-id="templateId"
+            title="Categories"
+            description="Map this template to categories"
+          />
+        </div>
+      </template>
+
       <template #popular-products>
         <div class="p-4 pb-8">
-          <HomepageTemplatePopularProductsTab v-if="templateId" :template-id="templateId" />
+          <HomepageTemplateProductsTab
+            v-if="templateId"
+            :template-id="templateId"
+            :product-type="HomepageProductType.Popular"
+            title="Popular Products"
+            description="Map this template to popular products"
+          />
+        </div>
+      </template>
+
+      <template #new-arrivals>
+        <div class="p-4 pb-8">
+          <HomepageTemplateProductsTab
+            v-if="templateId"
+            :template-id="templateId"
+            :product-type="HomepageProductType.New"
+            title="New Arrivals"
+            description="Map this template to new arrival products"
+          />
+        </div>
+      </template>
+
+      <template #special-for-you>
+        <div class="p-4 pb-8">
+          <HomepageTemplateProductsTab
+            v-if="templateId"
+            :template-id="templateId"
+            :product-type="HomepageProductType.SpecialForYou"
+            title="Special For You"
+            description="Map this template to special for you products"
+          />
         </div>
       </template>
     </UTabs>
@@ -99,9 +140,11 @@
 import { z } from 'zod'
 import HomepageTemplateService from '~/services/HomepageTemplateService'
 import type { UpsertHomepageTemplateDto } from '~/types/homepagetemplate/HomepageTemplate'
+import { HomepageProductType } from '~/types/homepagetemplate/HomepageProduct'
 import HomepageTemplateGeneralTab from '~/components/homepage-template/HomepageTemplateGeneralTab.vue'
 import HomepageTemplateMenuTab from '~/components/homepage-template/HomepageTemplateMenuTab.vue'
-import HomepageTemplatePopularProductsTab from '~/components/homepage-template/HomepageTemplatePopularProductsTab.vue'
+import HomepageTemplateCategoriesTab from '~/components/homepage-template/HomepageTemplateCategoriesTab.vue'
+import HomepageTemplateProductsTab from '~/components/homepage-template/HomepageTemplateProductsTab.vue'
 
 const props = defineProps<{
   templateId?: string
@@ -129,9 +172,24 @@ const items = computed(() => {
       value: 'menu'
     })
     tabs.push({
+      label: 'Categories',
+      slot: 'categories',
+      value: 'categories'
+    })
+    tabs.push({
       label: 'Popular Products',
       slot: 'popular-products',
       value: 'popular-products'
+    })
+    tabs.push({
+      label: 'New Arrivals',
+      slot: 'new-arrivals',
+      value: 'new-arrivals'
+    })
+    tabs.push({
+      label: 'Special For You',
+      slot: 'special-for-you',
+      value: 'special-for-you'
     })
   }
 

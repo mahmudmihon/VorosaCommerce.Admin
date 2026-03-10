@@ -1,6 +1,7 @@
 export enum HomepageProductType {
   Popular = 10,
-  New = 20
+  New = 20,
+  SpecialForYou = 30
 }
 
 export type HomepageProductDto = {
@@ -14,6 +15,7 @@ export type HomepageProductDto = {
   TagLine?: string | null
   DisplayOrder: number
   IsDefault: boolean
+  UseFeaturedImage?: boolean
 }
 
 export type UpsertHomepageProductDto = {

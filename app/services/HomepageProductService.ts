@@ -24,6 +24,14 @@ class HomepageProductService {
   async mapHomepageProducts(payload: MapHomepageProductsDto): Promise<void> {
     await this.baseService.post(`${resource}/map`, payload)
   }
+
+  async updateHomepageProduct(payload: FormData): Promise<HomepageProductDto> {
+    return await this.baseService.put<HomepageProductDto>(`${resource}/update`, payload)
+  }
+
+  async deleteHomepageProduct(id: string): Promise<void> {
+    await this.baseService.delete(`${resource}/${id}`)
+  }
 }
 
 export default new HomepageProductService()
