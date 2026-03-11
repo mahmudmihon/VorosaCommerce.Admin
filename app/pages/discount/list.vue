@@ -151,6 +151,12 @@
               @click="fetchDiscounts"
             />
           </UTooltip>
+          <USelect
+            v-model="pageSize"
+            :items="pageSizeOptions"
+            :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
+            class="w-24"
+          />
           <UPagination
             v-model:page="page"
             :items-per-page="pageSize"
@@ -181,6 +187,12 @@
   const discountTypeFilter = ref(0)
   const enabledFilter = ref(0)
   const loading = ref(false)
+  const pageSizeOptions = [
+    { label: '50', value: 50 },
+    { label: '200', value: 200 },
+    { label: '500', value: 500 },
+    { label: '1000', value: 1000 }
+  ]
 
   const canCreate = computed(() => hasPermission(PermissionSystemName.Discounts, PermissionActionName.Create))
   const canEdit = computed(() => hasPermission(PermissionSystemName.Discounts, PermissionActionName.Edit))

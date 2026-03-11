@@ -97,6 +97,18 @@
         </div>
       </template>
 
+      <template #loved-brands>
+        <div class="p-4 pb-8">
+          <HomepageTemplateLovedBrandsTab v-if="templateId" :template-id="templateId" />
+        </div>
+      </template>
+
+      <template #usp>
+        <div class="p-4 pb-8">
+          <HomepageTemplateUSPTab v-if="templateId" :template-id="templateId" />
+        </div>
+      </template>
+
       <template #popular-products>
         <div class="p-4 pb-8">
           <HomepageTemplateProductsTab
@@ -144,6 +156,8 @@ import { HomepageProductType } from '~/types/homepagetemplate/HomepageProduct'
 import HomepageTemplateGeneralTab from '~/components/homepage-template/HomepageTemplateGeneralTab.vue'
 import HomepageTemplateMenuTab from '~/components/homepage-template/HomepageTemplateMenuTab.vue'
 import HomepageTemplateCategoriesTab from '~/components/homepage-template/HomepageTemplateCategoriesTab.vue'
+import HomepageTemplateLovedBrandsTab from '~/components/homepage-template/HomepageTemplateLovedBrandsTab.vue'
+import HomepageTemplateUSPTab from '~/components/homepage-template/HomepageTemplateUSPTab.vue'
 import HomepageTemplateProductsTab from '~/components/homepage-template/HomepageTemplateProductsTab.vue'
 
 const props = defineProps<{
@@ -172,6 +186,11 @@ const items = computed(() => {
       value: 'menu'
     })
     tabs.push({
+      label: 'USP',
+      slot: 'usp',
+      value: 'usp'
+    })
+    tabs.push({
       label: 'Categories',
       slot: 'categories',
       value: 'categories'
@@ -190,6 +209,11 @@ const items = computed(() => {
       label: 'Special For You',
       slot: 'special-for-you',
       value: 'special-for-you'
+    })
+    tabs.push({
+      label: 'Loved Brands',
+      slot: 'loved-brands',
+      value: 'loved-brands'
     })
   }
 

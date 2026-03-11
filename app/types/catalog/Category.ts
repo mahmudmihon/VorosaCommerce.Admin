@@ -17,7 +17,7 @@ export type CategoryDto = BaseEntity & {
   Icon: PictureDto
 }
 
-export interface UpsertCategoryInfoDto {
+export type UpsertCategoryInfoDto = {
   Id?: string;
   Name: string;
   Description?: string;
@@ -30,7 +30,7 @@ export interface UpsertCategoryInfoDto {
   Icon: PictureUpsertDto;
 }
 
-export interface UpsertCategorySEOInfoDto {
+export type UpsertCategorySEOInfoDto = {
   Id: string;
   SeName: string;
   MetaKeywords?: string;

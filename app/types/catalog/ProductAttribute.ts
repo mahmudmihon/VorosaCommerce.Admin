@@ -3,11 +3,13 @@ import type { PictureDto } from '../common/Picture'
 
 export type ProductAttributeDto = BaseEntity & {
   Name: string
+  AllowFiltering: boolean
 }
 
-export interface UpsertProductAttributeDto {
+export type UpsertProductAttributeDto = {
   Id?: string;
   Name: string;
+  AllowFiltering: boolean;
 }
 
 export enum AttributeControlType {

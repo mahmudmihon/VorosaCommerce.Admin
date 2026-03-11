@@ -14,7 +14,7 @@ export type BrandDto = BaseEntity & {
   Icon: PictureDto
 }
 
-export interface UpsertBrandInfoDto {
+export type UpsertBrandInfoDto = {
   Id?: string;
   Name: string;
   Description?: string;
@@ -24,7 +24,7 @@ export interface UpsertBrandInfoDto {
   Icon: PictureUpsertDto;
 }
 
-export interface UpsertBrandSEOInfoDto {
+export type UpsertBrandSEOInfoDto = {
   Id: string;
   SeName: string;
   MetaKeywords?: string;

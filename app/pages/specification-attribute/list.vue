@@ -1,7 +1,7 @@
 <template>
   <UDashboardPanel>
     <template #header>
-      <UDashboardNavbar title="Product Attributes">
+      <UDashboardNavbar title="Specification Attributes">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
@@ -85,7 +85,7 @@
 
       <div class="flex items-center justify-between gap-3 border-t border-default pt-4 mt-auto">
         <div class="text-sm text-muted">
-          Total {{ data?.TotalCount || 0 }} product attributes
+          Total {{ data?.TotalCount || 0 }} specification attributes
         </div>
 
         <div class="flex items-center gap-1.5">
@@ -105,8 +105,8 @@
 
       <UModal
         v-model:open="upsertModalOpen"
-        :title="upsertState.Id ? 'Edit product attribute' : 'Create product attribute'"
-        description="Set the product attribute name."
+        :title="upsertState.Id ? 'Edit specification attribute' : 'Create specification attribute'"
+        description="Set the specification attribute details."
       >
         <template #body>
           <UForm
@@ -125,6 +125,22 @@
                 size="lg"
                 placeholder="Enter attribute name"
                 class="w-full"
+              />
+            </UFormField>
+
+            <UFormField
+              label="Attribute Type"
+              name="AttributeType"
+              required
+            >
+              <USelectMenu
+                v-model="selectedAttributeType"
+                :items="attributeTypeOptions"
+                placeholder="Select type"
+                value-key="value"
+                label-key="label"
+                class="w-full"
+                size="lg"
               />
             </UFormField>
 
@@ -160,7 +176,7 @@
 
       <UModal
         v-model:open="deleteModalOpen"
-        title="Delete product attribute"
+        title="Delete specification attribute"
         description="This action cannot be undone."
       >
         <template #body>
@@ -192,12 +208,13 @@
   import * as z from 'zod'
   import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
   import { useDebounceFn } from '@vueuse/core'
-  import ProductAttributeService from '~/services/ProductAttributeService'
-  import type { ProductAttributeDto, UpsertProductAttributeDto } from '~/types/catalog/ProductAttribute'
+  import SpecificationAttributeService from '~/services/SpecificationAttributeService'
+  import { SpecificationAttributeType, type SpecificationAttributeDto, type UpsertSpecificationAttributeDto } from '~/types/catalog/SpecificationAttribute'
   import type { PagedList } from '~/types/common/PagedList'
   import { PermissionActionName, PermissionSystemName } from '~/types/identity/permissions'
 
-  type TableRow = ProductAttributeDto & { id: string }
+  type TableRow = SpecificationAttributeDto & { id: string, AttributeTypeLabel: string }
+  type SelectOption = { label: string, value: string }
 
   const toast = useToast()
   const { hasPermission } = useSitemap()
@@ -220,7 +237,7 @@
 
     if (canCreate.value) {
       actions.push({
-        label: 'Add Product Attribute',
+        label: 'Add Specification Attribute',
         icon: 'i-solar:add-circle-bold-duotone',
         onSelect: () => {
           openCreateModal()
@@ -235,9 +252,16 @@
     return headerActions.value.some(group => group.length > 0)
   })
 
+  const attributeTypeLabel = (type: SpecificationAttributeType) => {
+    if (type === SpecificationAttributeType.HtmlText) return 'Html Text'
+    if (type === SpecificationAttributeType.Hyperlink) return 'Hyperlink'
+    return 'Text'
+  }
+
   const columns = computed<TableColumn<TableRow>[]>(() => {
     const cols: TableColumn<TableRow>[] = [
       { accessorKey: 'Name', header: 'Name' },
+      { accessorKey: 'AttributeTypeLabel', header: 'Type' },
       { accessorKey: 'AllowFiltering', header: 'Filterable' }
     ]
 
@@ -249,18 +273,22 @@
   })
 
   const loading = ref(false)
-  const data = ref<PagedList<ProductAttributeDto> | null>(null)
+  const data = ref<PagedList<SpecificationAttributeDto> | null>(null)
 
   const tableData = computed<TableRow[]>(() => {
     if (!data.value?.Items) return []
-    return data.value.Items.map(item => ({ ...item, id: item.Id }))
+    return data.value.Items.map(item => ({
+      ...item,
+      id: item.Id,
+      AttributeTypeLabel: attributeTypeLabel(item.AttributeType)
+    }))
   })
 
-  const fetchProductAttributes = async () => {
+  const fetchSpecificationAttributes = async () => {
     loading.value = true
 
     try {
-      const response = await ProductAttributeService.getProductAttributes({
+      const response = await SpecificationAttributeService.getSpecificationAttributes({
         CurrentPage: page.value,
         PageSize: pageSize.value,
         Name: nameFilter.value || undefined
@@ -269,8 +297,8 @@
       data.value = response
     }
     catch (error) {
-      console.error('Error fetching product attributes:', error)
-      toast.add({ title: 'Error', description: 'Failed to load product attributes', color: 'error' })
+      console.error('Error fetching specification attributes:', error)
+      toast.add({ title: 'Error', description: 'Failed to load specification attributes', color: 'error' })
     }
     finally {
       loading.value = false
@@ -278,7 +306,7 @@
   }
 
   const debouncedFetch = useDebounceFn(() => {
-    fetchProductAttributes()
+    fetchSpecificationAttributes()
   }, 500)
 
   watch(nameFilter, () => {
@@ -291,38 +319,55 @@
   })
 
   watch([page, pageSize], () => {
-    fetchProductAttributes()
+    fetchSpecificationAttributes()
   })
 
   onMounted(() => {
-    fetchProductAttributes()
+    fetchSpecificationAttributes()
   })
 
   const upsertModalOpen = ref(false)
   const upsertLoading = ref(false)
 
-  const upsertState = reactive<UpsertProductAttributeDto>({
+  const upsertState = reactive<UpsertSpecificationAttributeDto>({
     Id: undefined,
     Name: '',
+    AttributeType: SpecificationAttributeType.Text,
     AllowFiltering: false
   })
 
   const upsertSchema = z.object({
     Name: z.string().min(1, 'Name is required'),
+    AttributeType: z.coerce.number(),
     AllowFiltering: z.boolean()
+  })
+
+  const attributeTypeOptions = ref<SelectOption[]>([
+    { label: 'Text', value: String(SpecificationAttributeType.Text) },
+    { label: 'Html Text', value: String(SpecificationAttributeType.HtmlText) },
+    { label: 'Hyperlink', value: String(SpecificationAttributeType.Hyperlink) }
+  ])
+
+  const selectedAttributeType = computed<string>({
+    get: () => String(upsertState.AttributeType),
+    set: (val) => {
+      upsertState.AttributeType = Number(val)
+    }
   })
 
   function openCreateModal() {
     upsertState.Id = undefined
     upsertState.Name = ''
+    upsertState.AttributeType = SpecificationAttributeType.Text
     upsertState.AllowFiltering = false
     upsertModalOpen.value = true
   }
 
-  function openEditModal(attribute: ProductAttributeDto) {
+  function openEditModal(attribute: SpecificationAttributeDto) {
     if (!canEdit.value) return
     upsertState.Id = attribute.Id
     upsertState.Name = attribute.Name
+    upsertState.AttributeType = attribute.AttributeType
     upsertState.AllowFiltering = attribute.AllowFiltering ?? false
     upsertModalOpen.value = true
   }
@@ -330,17 +375,18 @@
   async function onUpsertSubmit() {
     upsertLoading.value = true
     try {
-      await ProductAttributeService.upsertProductAttribute({
+      await SpecificationAttributeService.upsertSpecificationAttribute({
         Id: upsertState.Id,
         Name: upsertState.Name,
+        AttributeType: upsertState.AttributeType,
         AllowFiltering: upsertState.AllowFiltering
       })
-      toast.add({ title: 'Success', description: 'Product attribute saved successfully', color: 'success' })
+      toast.add({ title: 'Success', description: 'Specification attribute saved successfully', color: 'success' })
       upsertModalOpen.value = false
-      await fetchProductAttributes()
+      await fetchSpecificationAttributes()
     }
     catch {
-      toast.add({ title: 'Error', description: 'Failed to save product attribute', color: 'error' })
+      toast.add({ title: 'Error', description: 'Failed to save specification attribute', color: 'error' })
     }
     finally {
       upsertLoading.value = false
@@ -349,9 +395,9 @@
 
   const deleteModalOpen = ref(false)
   const deleteLoading = ref(false)
-  const deleteTarget = ref<ProductAttributeDto | null>(null)
+  const deleteTarget = ref<SpecificationAttributeDto | null>(null)
 
-  function openDeleteModal(attribute: ProductAttributeDto) {
+  function openDeleteModal(attribute: SpecificationAttributeDto) {
     if (!canDelete.value) return
     deleteTarget.value = attribute
     deleteModalOpen.value = true
@@ -363,13 +409,13 @@
 
     deleteLoading.value = true
     try {
-      await ProductAttributeService.deleteProductAttribute(target.Id)
+      await SpecificationAttributeService.deleteSpecificationAttribute(target.Id)
       deleteModalOpen.value = false
-      toast.add({ title: 'Deleted', description: 'Product attribute deleted successfully', color: 'success' })
-      await fetchProductAttributes()
+      toast.add({ title: 'Deleted', description: 'Specification attribute deleted successfully', color: 'success' })
+      await fetchSpecificationAttributes()
     }
     catch {
-      toast.add({ title: 'Error', description: 'Failed to delete product attribute', color: 'error' })
+      toast.add({ title: 'Error', description: 'Failed to delete specification attribute', color: 'error' })
     }
     finally {
       deleteLoading.value = false

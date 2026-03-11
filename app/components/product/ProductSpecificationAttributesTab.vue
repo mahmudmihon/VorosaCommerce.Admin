@@ -52,6 +52,9 @@
     v-model:open="modalOpen"
     :title="modalTitle"
     description="Set specification details for this product"
+    :ui="{ content: 'w-full sm:max-w-4xl' }"
+    :dismissible="false"
+    :modal="false"
   >
     <template #body>
       <UForm
@@ -61,31 +64,20 @@
         @submit="onSubmit"
       >
         <UFormField
-          label="Attribute Type"
-          name="AttributeType"
+          label="Specification Attribute"
+          name="SpecificationAttributeId"
           required
         >
           <USelectMenu
-            v-model="selectedAttributeType"
-            :items="attributeTypeOptions"
-            placeholder="Select type"
+            id="SpecificationAttributeId"
+            v-model="state.SpecificationAttributeId"
+            :items="specificationAttributeOptions"
+            searchable
+            placeholder="Select specification attribute"
             value-key="value"
             label-key="label"
             class="w-full"
             size="xl"
-          />
-        </UFormField>
-
-        <UFormField
-          label="Name"
-          name="Name"
-          required
-        >
-          <UInput
-            v-model="state.Name"
-            size="xl"
-            placeholder="Enter name"
-            class="w-full"
           />
         </UFormField>
 
@@ -96,12 +88,13 @@
         >
           <RichEditor
             v-if="isHtmlType"
-            id="product-specification-value"
+            id="Value"
             v-model="state.Value"
             :height="260"
           />
           <UInput
             v-else-if="isHyperlinkType"
+            id="Value"
             v-model="state.Value"
             size="xl"
             type="url"
@@ -110,6 +103,7 @@
           />
           <UTextarea
             v-else
+            id="Value"
             v-model="state.Value"
             :rows="4"
             placeholder="Enter value"
@@ -122,6 +116,7 @@
           name="DisplayOrder"
         >
           <UInput
+            id="DisplayOrder"
             v-model="state.DisplayOrder"
             size="xl"
             type="number"
@@ -159,14 +154,16 @@
   import { h, resolveComponent } from 'vue'
   import { Icon } from '@iconify/vue'
   import ProductService from '~/services/ProductService'
+  import SpecificationAttributeService from '~/services/SpecificationAttributeService'
   import RichEditor from '~/components/common/RichEditor.vue'
   import { SpecificationAttributeType, type ProductSpecificationAttributeDto } from '~/types/catalog/ProductSpecificationAttribute'
+  import type { SpecificationAttributeDto } from '~/types/catalog/SpecificationAttribute'
 
   const props = defineProps<{
     productId?: string
   }>()
 
-  type SelectOption = { label: string, value: string }
+  type SpecificationAttributeOption = { label: string, value: string, attributeType: SpecificationAttributeType }
   type TableRow = ProductSpecificationAttributeDto & {
     id: string
     AttributeTypeLabel: string
@@ -183,8 +180,7 @@
   const specificationAttributes = ref<ProductSpecificationAttributeDto[]>([])
 
   const schema = z.object({
-    AttributeType: z.coerce.number(),
-    Name: z.string().min(1, 'Name is required'),
+    SpecificationAttributeId: z.string().min(1, 'Specification attribute is required'),
     Value: z.string().min(1, 'Value is required'),
     DisplayOrder: z.coerce.number().min(0)
   })
@@ -192,29 +188,22 @@
   type Schema = z.output<typeof schema>
 
   const state = reactive<Schema>({
-    AttributeType: SpecificationAttributeType.Text,
-    Name: '',
+    SpecificationAttributeId: '',
     Value: '',
     DisplayOrder: 0
   })
 
   const editingId = ref<string | null>(null)
 
-  const attributeTypeOptions = ref<SelectOption[]>([
-    { label: 'Text', value: String(SpecificationAttributeType.Text) },
-    { label: 'Html Text', value: String(SpecificationAttributeType.HtmlText) },
-    { label: 'Hyperlink', value: String(SpecificationAttributeType.Hyperlink) }
-  ])
+  const specificationAttributeOptions = ref<SpecificationAttributeOption[]>([])
 
-  const selectedAttributeType = computed<string>({
-    get: () => String(state.AttributeType),
-    set: (val) => {
-      state.AttributeType = Number(val)
-    }
+  const selectedAttributeType = computed(() => {
+    const selected = specificationAttributeOptions.value.find(option => option.value === state.SpecificationAttributeId)
+    return selected?.attributeType ?? SpecificationAttributeType.Text
   })
 
-  const isHtmlType = computed(() => state.AttributeType === SpecificationAttributeType.HtmlText)
-  const isHyperlinkType = computed(() => state.AttributeType === SpecificationAttributeType.Hyperlink)
+  const isHtmlType = computed(() => selectedAttributeType.value === SpecificationAttributeType.HtmlText)
+  const isHyperlinkType = computed(() => selectedAttributeType.value === SpecificationAttributeType.Hyperlink)
 
   const modalTitle = computed(() => (editingId.value ? 'Edit specification' : 'Add specification'))
   const submitLabel = computed(() => (editingId.value ? 'Update' : 'Save'))
@@ -229,6 +218,7 @@
     return specificationAttributes.value.map(item => ({
       ...item,
       id: item.Id,
+      Name: item.Name || item.SpecificationAttributeName || '',
       AttributeTypeLabel: attributeTypeLabel(item.AttributeType)
     }))
   })
@@ -307,10 +297,26 @@
     }
   }
 
+  const fetchSpecificationAttributeOptions = async () => {
+    try {
+      const response = await SpecificationAttributeService.getSpecificationAttributes({
+        CurrentPage: 1,
+        PageSize: 1000
+      })
+      specificationAttributeOptions.value = (response.Items || []).map((item: SpecificationAttributeDto) => ({
+        label: item.Name,
+        value: item.Id,
+        attributeType: item.AttributeType
+      }))
+    }
+    catch {
+      toast.add({ title: 'Error', description: 'Failed to load specification attributes', color: 'error' })
+    }
+  }
+
   const resetForm = () => {
     editingId.value = null
-    state.AttributeType = SpecificationAttributeType.Text
-    state.Name = ''
+    state.SpecificationAttributeId = ''
     state.Value = ''
     state.DisplayOrder = 0
   }
@@ -323,8 +329,7 @@
 
     if (spec) {
       editingId.value = spec.Id
-      state.AttributeType = spec.AttributeType
-      state.Name = spec.Name
+      state.SpecificationAttributeId = spec.SpecificationAttributeId
       state.Value = spec.Value
       state.DisplayOrder = spec.DisplayOrder
     }
@@ -341,26 +346,25 @@
     submitLoading.value = true
     try {
       if (editingId.value) {
-        specificationAttributes.value = await ProductService.updateProductSpecificationAttribute({
+        await ProductService.updateProductSpecificationAttribute({
           ProductId: props.productId,
           SpecificationId: editingId.value,
-          AttributeType: event.data.AttributeType,
-          Name: event.data.Name,
+          SpecificationAttributeId: event.data.SpecificationAttributeId,
           Value: event.data.Value,
           DisplayOrder: event.data.DisplayOrder
         })
         toast.add({ title: 'Success', description: 'Specification updated successfully', color: 'success' })
       }
       else {
-        specificationAttributes.value = await ProductService.addProductSpecificationAttribute({
+        await ProductService.addProductSpecificationAttribute({
           ProductId: props.productId,
-          AttributeType: event.data.AttributeType,
-          Name: event.data.Name,
+          SpecificationAttributeId: event.data.SpecificationAttributeId,
           Value: event.data.Value,
           DisplayOrder: event.data.DisplayOrder
         })
         toast.add({ title: 'Success', description: 'Specification added successfully', color: 'success' })
       }
+      await fetchSpecifications()
       modalOpen.value = false
       resetForm()
     }
@@ -377,10 +381,11 @@
 
     deleteLoadingId.value = specId
     try {
-      specificationAttributes.value = await ProductService.deleteProductSpecificationAttribute({
+      await ProductService.deleteProductSpecificationAttribute({
         ProductId: props.productId,
         SpecificationId: specId
       })
+      await fetchSpecifications()
       toast.add({ title: 'Deleted', description: 'Specification removed', color: 'success' })
     }
     catch {
@@ -398,4 +403,8 @@
     },
     { immediate: true }
   )
+
+  onMounted(() => {
+    fetchSpecificationAttributeOptions()
+  })
 </script>

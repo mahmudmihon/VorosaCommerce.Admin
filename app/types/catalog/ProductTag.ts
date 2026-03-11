@@ -5,7 +5,7 @@ export type ProductTagDto = BaseEntity & {
   Count: number
 }
 
-export interface UpsertProductTagDto {
+export type UpsertProductTagDto = {
   Id?: string;
   Name: string;
 }

@@ -83,6 +83,12 @@
         </div>
 
         <div class="flex items-center gap-1.5">
+          <USelect
+            v-model="pageSize"
+            :items="pageSizeOptions"
+            :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
+            class="w-24"
+          />
           <UPagination
             v-model:page="page"
             :items-per-page="pageSize"
@@ -185,6 +191,11 @@
   const page = ref(1)
   const pageSize = ref(20)
   const nameFilter = ref('')
+  const pageSizeOptions = [
+    { label: '20', value: 20 },
+    { label: '50', value: 50 },
+    { label: '100', value: 100 }
+  ]
 
   const canCreate = computed(() => hasPermission(PermissionSystemName.Products, PermissionActionName.Create))
   const canEdit = computed(() => hasPermission(PermissionSystemName.Products, PermissionActionName.Edit))

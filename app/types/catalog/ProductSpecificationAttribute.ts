@@ -6,16 +6,17 @@ export enum SpecificationAttributeType {
 
 export type ProductSpecificationAttributeDto = {
   Id: string
+  SpecificationAttributeId: string
+  SpecificationAttributeName?: string
   AttributeType: SpecificationAttributeType
-  Name: string
+  Name?: string
   Value: string
   DisplayOrder: number
 }
 
 export type UpsertProductSpecificationAttributeDto = {
   ProductId: string
-  AttributeType: SpecificationAttributeType
-  Name: string
+  SpecificationAttributeId: string
   Value: string
   DisplayOrder: number
 }
@@ -23,8 +24,7 @@ export type UpsertProductSpecificationAttributeDto = {
 export type UpdateProductSpecificationAttributeDto = {
   ProductId: string
   SpecificationId: string
-  AttributeType: SpecificationAttributeType
-  Name: string
+  SpecificationAttributeId: string
   Value: string
   DisplayOrder: number
 }

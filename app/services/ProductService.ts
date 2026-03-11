@@ -71,16 +71,16 @@ class ProductService {
     return await this.baseService.get<ProductSpecificationAttributeDto[]>(`${resource}/specification-attribute/list?ProductId=${productId}`)
   }
 
-  async addProductSpecificationAttribute(payload: UpsertProductSpecificationAttributeDto): Promise<ProductSpecificationAttributeDto[]> {
-    return await this.baseService.post<ProductSpecificationAttributeDto[]>(`${resource}/specification-attribute`, payload)
+  async addProductSpecificationAttribute(payload: UpsertProductSpecificationAttributeDto): Promise<void> {
+    await this.baseService.post(`${resource}/specification-attribute`, payload)
   }
 
-  async updateProductSpecificationAttribute(payload: UpdateProductSpecificationAttributeDto): Promise<ProductSpecificationAttributeDto[]> {
-    return await this.baseService.put<ProductSpecificationAttributeDto[]>(`${resource}/specification-attribute`, payload)
+  async updateProductSpecificationAttribute(payload: UpdateProductSpecificationAttributeDto): Promise<void> {
+    await this.baseService.put(`${resource}/specification-attribute`, payload)
   }
 
-  async deleteProductSpecificationAttribute(payload: DeleteProductSpecificationAttributeDto): Promise<ProductSpecificationAttributeDto[]> {
-    return await this.baseService.delete<ProductSpecificationAttributeDto[]>(`${resource}/specification-attribute`, payload)
+  async deleteProductSpecificationAttribute(payload: DeleteProductSpecificationAttributeDto): Promise<void> {
+    await this.baseService.delete(`${resource}/specification-attribute`, payload)
   }
 
   async deleteProduct(id: string): Promise<void> {
